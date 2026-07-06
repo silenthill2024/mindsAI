@@ -1,4 +1,4 @@
-package com.example.mindsai.ui.components
+package com.example.mindsai.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -8,24 +8,9 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun AppBottomNavigation(navController: NavHostController) {
-    NavigationBar {
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, "Inicio") },
-            label = { Text("Inicio") },
-            selected = false,
-            onClick = { navController.navigate("home") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Forum, "Foro") },
-            label = { Text("Foro") },
-            selected = false,
-            onClick = { navController.navigate("forum") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Person, "Perfil") },
-            label = { Text("Perfil") },
-            selected = false,
-            onClick = { navController.navigate("profile") }
-        )
+    NavigationBar(containerColor = androidx.compose.ui.graphics.Color.White) {
+        NavigationBarItem(icon = { Icon(Icons.Default.Home, "Inicio") }, selected = false, onClick = { navController.navigate("home") }, label = { Text("Inicio") })
+        NavigationBarItem(icon = { Icon(Icons.Default.Forum, "Foro") }, selected = false, onClick = { navController.navigate("forum") }, label = { Text("Foro") })
+        NavigationBarItem(icon = { Icon(Icons.Default.Person, "Perfil") }, selected = false, onClick = { navController.navigate("profile") }, label = { Text("Perfil") })
     }
 }

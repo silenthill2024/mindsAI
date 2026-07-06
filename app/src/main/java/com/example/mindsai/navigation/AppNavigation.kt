@@ -5,19 +5,19 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.mindsai.screens.ForumScreen
-import com.example.mindsai.screens.HomeScreen
-import com.example.mindsai.screens.ProfileScreen
+import com.example.mindsai.screens.*
 
 @Composable
-fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifier) {
-    NavHost(
-        navController = navController,
-        startDestination = "home",
-        modifier = modifier
-    ) {
+fun AppNavigation(
+    navController: NavHostController,
+    modifier: Modifier,
+    isDarkMode: Boolean,
+    onThemeChange: (Boolean) -> Unit
+) {
+    NavHost(navController = navController, startDestination = "home", modifier = modifier) {
         composable("home") { HomeScreen() }
         composable("forum") { ForumScreen() }
-        composable("profile") { ProfileScreen() }
+        // Pasamos las variables a ProfileScreen
+        composable("profile") { ProfileScreen(isDarkMode, onThemeChange) }
     }
 }
