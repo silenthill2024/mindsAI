@@ -7,9 +7,10 @@ import androidx.room.RoomDatabase
     entities = [
         UserEntity::class,
         SubjectEntity::class,
-        QuoteEntity::class
+        QuoteEntity::class,
+        TaskEntity::class
     ],
-    version = 2, // Version increased because we added new tables
+    version = 4, // Incremented version due to new column and index
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

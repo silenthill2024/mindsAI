@@ -27,7 +27,8 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     bottomBar = {
-                        if (currentRoute != Screen.Login.route && currentRoute != Screen.Register.route) {
+                        val noBarScreens = listOf(Screen.Login.route, Screen.Register.route, Screen.Splash.route)
+                        if (currentRoute !in noBarScreens) {
                             AppBottomNavigation(navController)
                         }
                     },

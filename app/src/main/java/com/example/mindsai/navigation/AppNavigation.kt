@@ -8,11 +8,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.mindsai.local.data.DatabaseProvider
+import com.example.mindsai.repository.ForumRepository
+import com.example.mindsai.repository.StudyRepository
 import com.example.mindsai.repository.UserRepository
 import com.example.mindsai.screens.*
-import com.example.mindsai.viewmodel.LoginViewModel
-import com.example.mindsai.viewmodel.RegisterViewModel
-import com.example.mindsai.viewmodel.ViewModelFactory
+import com.example.mindsai.viewmodel.*
 
 @Composable
 fun AppNavigation(
@@ -23,10 +23,23 @@ fun AppNavigation(
 ) {
     val context = LocalContext.current
     val database = DatabaseProvider.getDatabase(context)
-    val repository = UserRepository(database.userDao())
-    val factory = ViewModelFactory(repository)
+    
+    val userRepository = UserRepository(database.userDao())
+    val forumRepository = ForumRepository()
+    val studyRepository = StudyRepository(database.studyDao())
+    
+    val factory = ViewModelFactory(userRepository, forumRepository, studyRepository)
 
-    NavHost(navController = navController, startDestination = Screen.Login.route, modifier = modifier) {
+    NavHost(navController = navController, startDestination = Screen.Splash.route, modifier = modifier) {
+        
+        composable(Screen.Splash.route) {
+            SplashScreen(onNavigateToLogin = {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(Screen.Splash.route) { inclusive = true }
+                }
+            })
+        }
+
         composable(Screen.Login.route) {
             val viewModel: LoginViewModel = viewModel(factory = factory)
             LoginScreen(
@@ -53,9 +66,29 @@ fun AppNavigation(
                 }
             )
         }
-        composable(Screen.Home.route) { HomeScreen() }
-        composable(Screen.Forum.route) { ForumScreen() }
-        // Pasamos las variables a ProfileScreen
-        composable(Screen.Profile.route) { ProfileScreen(isDarkMode, onThemeChange) }
+        composable(Screen.Home.route) { 
+            val homeViewModel: HomeViewModel = viewModel(factory = factory)
+            HomeScreen(viewModel = homeViewModel) 
+        }
+        
+        composable(Screen.Forum.route) { 
+            val forumViewModel: ForumViewModel = viewModel(factory = factory)
+            ForumScreen(viewModel = forumViewModel) 
+        }
+
+        composable(Screen.Profile.route) { 
+            val profileViewModel: ProfileViewModel = viewModel(factory = factory)
+            ProfileScreen(
+                viewModel = profileViewModel,
+                isDarkMode = isDarkMode, 
+                onThemeChange = onThemeChange,
+                onLogout = {
+                    com.example.mindsai.local.UserSession.currentUser = null
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            ) 
+        }
     }
 }

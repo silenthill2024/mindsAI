@@ -2,6 +2,7 @@ package com.example.mindsai.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mindsai.local.UserSession
 import com.example.mindsai.repository.UserRepository
 import kotlinx.coroutines.launch
 
@@ -24,10 +25,12 @@ class LoginViewModel(
                     password
                 )
 
-            if (user != null)
+            if (user != null) {
+                UserSession.currentUser = user // Guardamos la sesión (Relacional)
                 onSuccess()
-            else
+            } else {
                 onError()
+            }
         }
     }
 }

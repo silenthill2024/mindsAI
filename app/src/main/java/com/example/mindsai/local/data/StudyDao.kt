@@ -22,4 +22,17 @@ interface StudyDao {
 
     @Query("SELECT * FROM quotes ORDER BY RANDOM() LIMIT 1")
     suspend fun getRandomQuote(): QuoteEntity?
+
+    // --- Tasks (Relational with User) ---
+    @Query("SELECT * FROM tasks WHERE userId = :userId")
+    fun getTasksForUser(userId: Int): Flow<List<TaskEntity>>
+
+    @Insert
+    suspend fun insertTask(task: TaskEntity)
+
+    @Update
+    suspend fun updateTask(task: TaskEntity)
+
+    @Delete
+    suspend fun deleteTask(task: TaskEntity)
 }

@@ -12,5 +12,7 @@ data class UserEntity(
 
     val correo:String,
 
-    val password:String
+    val password:String,
+
+    val description: String = ""
 )

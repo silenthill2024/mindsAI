@@ -17,7 +17,9 @@ object DatabaseProvider {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "studymind_db"
-            ).build()
+            )
+            .fallbackToDestructiveMigration() // Evita que la app se cierre al cambiar la base de datos
+            .build()
 
             INSTANCE = instance
             instance

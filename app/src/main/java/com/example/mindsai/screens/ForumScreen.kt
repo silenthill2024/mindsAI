@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,112 +13,209 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mindsai.local.UserSession
+import com.example.mindsai.viewmodel.ForumViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForumScreen() {
+fun ForumScreen(viewModel: ForumViewModel) {
     var searchQuery by remember { mutableStateOf("") }
-    var isMenuExpanded by remember { mutableStateOf(false) }
-    var selectedOrder by remember { mutableStateOf("Más recientes") }
-    var selectedCategory by remember { mutableStateOf("Hardware") }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf("Todos") }
+    
+    val categories = listOf("Todos", "Software", "Hardware", "Bases de Datos", "Machine Learning")
+    val userName = UserSession.currentUser?.nombre ?: "Invitado"
+    val posts by viewModel.posts.collectAsState()
+    val isRefreshing by remember { mutableStateOf(false) } // Podrías conectar esto al ViewModel
 
-    val categories = listOf("Todos", "Hardware", "Software", "Machine Learning", "Bases de Datos")
+    val headerGradient = Brush.horizontalGradient(
+        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
+    )
 
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF0F2F5))) {
-        // Cabecera estática con búsqueda y orden
-        Column(modifier = Modifier.background(Color.White).padding(16.dp)) {
-            Text("Comunidad Académica", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar discusiones...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                    items(categories.size) { index ->
-                        FilterChip(
-                            selected = selectedCategory == categories[index],
-                            onClick = { selectedCategory = categories[index] },
-                            label = { Text(categories[index]) }
-                        )
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Nuevo Post", tint = MaterialTheme.colorScheme.onPrimary)
+            }
+        }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            // Header mejorado para Modo Oscuro
+            Column(
+                modifier = Modifier
+                    .background(headerGradient)
+                    .padding(24.dp)
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("MindsAI Forum", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("Conectado a Supabase Realtime", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                    }
+                    IconButton(onClick = { viewModel.refresh() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Buscar temas...", color = Color.White.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color.White
+                    ),
+                    singleLine = true
+                )
+            }
 
-                Box {
-                    IconButton(onClick = { isMenuExpanded = true }) { Icon(Icons.Default.MoreVert, contentDescription = "Ordenar") }
-                    DropdownMenu(expanded = isMenuExpanded, onDismissRequest = { isMenuExpanded = false }) {
-                        DropdownMenuItem(text = { Text("Más recientes") }, onClick = { selectedOrder = "Más recientes"; isMenuExpanded = false })
-                        DropdownMenuItem(text = { Text("Más votados") }, onClick = { selectedOrder = "Más votados"; isMenuExpanded = false })
-                        DropdownMenuItem(text = { Text("Sin respuesta") }, onClick = { selectedOrder = "Sin respuesta"; isMenuExpanded = false })
-                    }
+            // Selector de Categorías
+            LazyRow(
+                modifier = Modifier.padding(vertical = 12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(categories) { category ->
+                    FilterChip(
+                        selected = selectedCategory == category,
+                        onClick = { selectedCategory = category },
+                        label = { Text(category) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                }
+            }
+
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp, bottom = 100.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                val filteredPosts = posts.filter { 
+                    (selectedCategory == "Todos" || it.category == selectedCategory) &&
+                    (it.title.contains(searchQuery, true) || it.body.contains(searchQuery, true))
+                }
+                
+                items(filteredPosts) { post ->
+                    ForoPostItem(
+                        votes = post.votes,
+                        title = post.title,
+                        body = post.body,
+                        author = post.author,
+                        category = post.category,
+                        onVote = { delta -> viewModel.vote(post.id, delta) }
+                    )
                 }
             }
         }
+    }
 
-        // Lista de Posteos Interactivos
-        LazyColumn(contentPadding = PaddingValues(16.dp, bottom = 80.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            item { ForoPost(156, "Duda con Jetpack Compose y ViewModels", "Estoy intentando mantener el estado de unos checkboxes pero al hacer scroll en el LazyColumn se pierden. ¿Alguien sabe cómo solucionarlo?", "Software", "Erick") }
-            item { ForoPost(42, "¿Archivos correctos para RB3Enhanced en Wii?", "Estoy modificando mi consola. Sé que la carpeta no es rb3_dlc, pero ¿cuáles son los archivos .dol correctos? ¿SZBE69 y SZBP69?", "Hardware", "Rafa") }
-            item { ForoPost(89, "Ayuda con módulo inalámbrico", "Tengo problemas para desoldar el módulo WiFi de una placa de Xbox 360, ¿qué temperatura de cautín recomiendan?", "Hardware", "Alex") }
-            item { ForoPost(210, "Optimización de consultas PL/SQL", "Mi paquete está tardando mucho en ejecutar el backtracking. ¿Es mejor usar cursores o tablas temporales?", "Bases de Datos", "Diana") }
+    if (showAddDialog) {
+        CreatePostDialog(
+            onDismiss = { showAddDialog = false },
+            onConfirm = { t, b ->
+                viewModel.createPost(t, b, "General", userName)
+                showAddDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun ForoPostItem(votes: Int, title: String, body: String, author: String, category: String, onVote: (Int) -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                IconButton(onClick = { onVote(1) }, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.ArrowDropUp, contentDescription = "Up", modifier = Modifier.size(32.dp))
+                }
+                Text("$votes", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
+                IconButton(onClick = { onVote(-1) }, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Down", modifier = Modifier.size(32.dp))
+                }
+            }
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        category,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text(body, fontSize = 14.sp, maxLines = 2)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Por: $author", fontSize = 11.sp)
+                }
+            }
         }
     }
 }
 
 @Composable
-fun ForoPost(votosIniciales: Int, titulo: String, cuerpo: String, etiqueta: String, autor: String) {
-    var votos by remember { mutableStateOf(votosIniciales) }
-    var votado by remember { mutableStateOf(0) } // 1 up, -1 down, 0 nada
-    var guardado by remember { mutableStateOf(false) }
-
-    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(16.dp)) {
-            // Columna de Votación
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(end = 12.dp)) {
-                IconButton(onClick = { if (votado != 1) { votos += (if (votado == -1) 2 else 1); votado = 1 } else { votos--; votado = 0 } }, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.KeyboardArrowUp, tint = if (votado == 1) Color(0xFFFF5722) else Color.Gray, contentDescription = "Upvote")
-                }
-                Text("$votos", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = if (votado == 1) Color(0xFFFF5722) else if (votado == -1) Color(0xFF2196F3) else Color.Black)
-                IconButton(onClick = { if (votado != -1) { votos -= (if (votado == 1) 2 else 1); votado = -1 } else { votos++; votado = 0 } }, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.KeyboardArrowDown, tint = if (votado == -1) Color(0xFF2196F3) else Color.Gray, contentDescription = "Downvote")
-                }
+fun CreatePostDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
+    var title by remember { mutableStateOf("") }
+    var body by remember { mutableStateOf("") }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Nueva Publicación") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = body, onValueChange = { body = it }, label = { Text("Mensaje") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
             }
-
-            // Contenido del post
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Badge(containerColor = Color(0xFFE3F2FD), contentColor = Color(0xFF1976D2)) { Text(etiqueta, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
-                    IconToggleButton(checked = guardado, onCheckedChange = { guardado = it }) {
-                        Icon(if (guardado) Icons.Default.Star else Icons.Default.Star, contentDescription = "Guardar", tint = if (guardado) Color(0xFFFFC107) else Color.LightGray)
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(titulo, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(cuerpo, fontSize = 14.sp, color = Color.DarkGray, lineHeight = 20.sp)
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Publicado por $autor", fontSize = 12.sp, color = Color.Gray)
-                    Spacer(modifier = Modifier.weight(1f))
-                    Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("12 comentarios", fontSize = 12.sp, color = Color.Gray)
-                }
+        },
+        confirmButton = {
+            Button(onClick = { if(title.isNotBlank()) onConfirm(title, body) }) {
+                Text("Publicar")
             }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
         }
-    }
+    )
 }

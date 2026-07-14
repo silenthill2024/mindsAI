@@ -17,4 +17,7 @@ interface UserDao {
         correo:String,
         password:String
     ): UserEntity?
+
+    @Update
+    suspend fun updateUser(user: UserEntity)
 }
