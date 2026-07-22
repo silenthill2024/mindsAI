@@ -2,12 +2,11 @@ package com.example.mindsai.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,14 +28,12 @@ fun RegisterScreen(
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
     
-    // Estados de error
-    var nombreError by remember { mutableStateOf<String?>(null) }
-    var correoError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
+    val scrollState = rememberScrollState()
 
     val gradient = Brush.verticalGradient(
-        colors = listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)
+        colors = listOf(Color(0xFF5D5FEF), Color(0xFF8C8DFF))
     )
 
     Box(
@@ -47,110 +44,110 @@ fun RegisterScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Logo o Icono en el Registro
             Surface(
-                color = Color.White.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.size(80.dp),
+                shape = RoundedCornerShape(20.dp),
+                color = Color.White.copy(alpha = 0.2f)
             ) {
-                Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Storage, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Insert: Room (SQL Relacional)", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
+                Icon(
+                    Icons.Default.AppRegistration,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.padding(16.dp).size(48.dp)
+                )
             }
 
-            Text(text = "Nueva Cuenta", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
-            Text(text = "Únete a la red académica más grande", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f), modifier = Modifier.padding(bottom = 32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(text = "Crear Cuenta", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+            Text(text = "Únete a MindsAI y potencia tu estudio", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f))
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(12.dp)
+                shape = RoundedCornerShape(32.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(8.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Campo Nombre
                     OutlinedTextField(
                         value = nombre,
-                        onValueChange = { 
-                            nombre = it
-                            if (it.isNotEmpty()) nombreError = null 
-                        },
+                        onValueChange = { nombre = it },
                         label = { Text("Nombre Completo") },
-                        isError = nombreError != null,
-                        supportingText = { if (nombreError != null) Text(nombreError!!) },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF5D5FEF)) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5D5FEF),
+                            focusedLabelColor = Color(0xFF5D5FEF)
+                        )
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // Campo Correo
                     OutlinedTextField(
                         value = correo,
-                        onValueChange = { 
-                            correo = it
-                            if (it.contains("@")) correoError = null
-                        },
+                        onValueChange = { correo = it },
                         label = { Text("Correo Electrónico") },
-                        isError = correoError != null,
-                        supportingText = { if (correoError != null) Text(correoError!!) },
-                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF5D5FEF)) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5D5FEF),
+                            focusedLabelColor = Color(0xFF5D5FEF)
+                        )
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // Campo Contraseña
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { 
-                            password = it
-                            if (it.length >= 6) passwordError = null
-                        },
-                        label = { Text("Contraseña (min. 6 caracteres)") },
+                        onValueChange = { password = it },
+                        label = { Text("Contraseña") },
                         visualTransformation = PasswordVisualTransformation(),
-                        isError = passwordError != null,
-                        supportingText = { if (passwordError != null) Text(passwordError!!) },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF5D5FEF)) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5D5FEF),
+                            focusedLabelColor = Color(0xFF5D5FEF)
+                        )
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                    Button(
-                        onClick = {
-                            // Validación lógica
-                            var isValid = true
-                            if (nombre.isEmpty()) { nombreError = "El nombre es obligatorio"; isValid = false }
-                            if (!correo.contains("@") || !correo.contains(".")) { correoError = "Ingresa un correo válido"; isValid = false }
-                            if (password.length < 6) { passwordError = "La contraseña debe tener al menos 6 caracteres"; isValid = false }
-
-                            if (isValid) {
-                                viewModel.register(nombre, correo, password, onSuccess = onRegisterSuccess)
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                    ) {
-                        Text("Crear Cuenta", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color(0xFF5D5FEF))
+                    } else {
+                        Button(
+                            onClick = {
+                                if (nombre.isNotBlank() && correo.isNotBlank() && password.length >= 6) {
+                                    isLoading = true
+                                    viewModel.register(nombre, correo, password) {
+                                        isLoading = false
+                                        onRegisterSuccess()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D5FEF))
+                        ) {
+                            Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
 
                     TextButton(onClick = onNavigateToLogin, modifier = Modifier.padding(top = 8.dp)) {
-                        Text("¿Ya tienes cuenta? Inicia sesión aquí")
+                        Text("¿Ya tienes cuenta? Inicia sesión", color = Color(0xFF5D5FEF))
                     }
                 }
             }

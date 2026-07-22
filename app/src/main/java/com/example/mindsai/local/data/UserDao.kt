@@ -20,4 +20,7 @@ interface UserDao {
 
     @Update
     suspend fun updateUser(user: UserEntity)
+
+    @Query("UPDATE users SET xp = :newXp, level = :newLevel, tasksCompleted = :newCompleted WHERE id = :userId")
+    suspend fun updateGamification(userId: Int, newXp: Int, newLevel: Int, newCompleted: Int)
 }

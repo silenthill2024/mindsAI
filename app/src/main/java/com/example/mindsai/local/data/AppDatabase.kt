@@ -10,7 +10,7 @@ import androidx.room.RoomDatabase
         QuoteEntity::class,
         TaskEntity::class
     ],
-    version = 4, // Incremented version due to new column and index
+    version = 5, // Incremented version for gamification fields
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -26,7 +26,7 @@ class ViewModelFactory(
         }
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return HomeViewModel(studyRepository) as T
+            return HomeViewModel(studyRepository, userRepository) as T
         }
         if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

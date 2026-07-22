@@ -13,12 +13,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mindsai.local.UserSession
+import com.example.mindsai.model.ForumPost
 import com.example.mindsai.viewmodel.ForumViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,108 +27,168 @@ import com.example.mindsai.viewmodel.ForumViewModel
 fun ForumScreen(viewModel: ForumViewModel) {
     var searchQuery by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf("Todos") }
+    var selectedCategory by remember { mutableStateOf("Todas") }
     
-    val categories = listOf("Todos", "Software", "Hardware", "Bases de Datos", "Machine Learning")
+    val categories = listOf(
+        "Todas" to Icons.Default.AllInclusive,
+        "Matemáticas" to Icons.Default.Functions,
+        "Programación" to Icons.Default.Code,
+        "Física" to Icons.Default.Science,
+        "Bases de Datos" to Icons.Default.Storage
+    )
+    
     val userName = UserSession.currentUser?.nombre ?: "Invitado"
     val posts by viewModel.posts.collectAsState()
-    val isRefreshing by remember { mutableStateOf(false) } // Podrías conectar esto al ViewModel
-
-    val headerGradient = Brush.horizontalGradient(
-        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
-    )
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color(0xFFF8F9FF),
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Nuevo Post", tint = MaterialTheme.colorScheme.onPrimary)
-            }
+                containerColor = Color(0xFF5D5FEF),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(20.dp),
+                icon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                text = { Text("Nueva pregunta") }
+            )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            // Header mejorado para Modo Oscuro
-            Column(
-                modifier = Modifier
-                    .background(headerGradient)
-                    .padding(24.dp)
-                    .fillMaxWidth()
-            ) {
+            // 1. Header estilo "Maria González"
+            Column(modifier = Modifier.padding(24.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text("MindsAI Forum", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
-                        Text("Conectado a Supabase Realtime", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Foro", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color(0xFF5D5FEF))
                     }
-                    IconButton(onClick = { viewModel.refresh() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        BadgedBox(badge = { Badge { Text("3") } }) {
+                            Icon(Icons.Default.NotificationsNone, contentDescription = null)
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Surface(modifier = Modifier.size(35.dp), shape = CircleShape, color = Color.LightGray) {
+                            Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(4.dp))
+                        }
                     }
                 }
+                Text("Pregunta, aprende y comparte conocimientos", fontSize = 14.sp, color = Color.Gray)
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Buscar temas...", color = Color.White.copy(alpha = 0.6f)) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
-                    ),
-                    singleLine = true
-                )
-            }
-
-            // Selector de Categorías
-            LazyRow(
-                modifier = Modifier.padding(vertical = 12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(categories) { category ->
-                    FilterChip(
-                        selected = selectedCategory == category,
-                        onClick = { selectedCategory = category },
-                        label = { Text(category) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Buscar preguntas o temas...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White
+                        ),
+                        singleLine = true
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        modifier = Modifier.size(54.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.White,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
+                    ) {
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Tune, contentDescription = "Filtro")
+                        }
+                    }
                 }
             }
 
+            // 2. Categorías con Iconos
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(categories) { (name, icon) ->
+                    val isSelected = selectedCategory == name
+                    Card(
+                        onClick = { selectedCategory = name },
+                        modifier = Modifier.width(100.dp).height(110.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) Color(0xFF5D5FEF) else Color.White
+                        ),
+                        elevation = CardDefaults.cardElevation(if (isSelected) 4.dp else 1.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(icon, contentDescription = null, tint = if (isSelected) Color.White else Color(0xFF5D5FEF))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(name, fontSize = 11.sp, color = if (isSelected) Color.White else Color.Black, fontWeight = FontWeight.Bold)
+                            Text("28", fontSize = 10.sp, color = if (isSelected) Color.White.copy(alpha = 0.7f) else Color.Gray)
+                        }
+                    }
+                }
+            }
+
+            // 3. Preguntas Recientes
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Preguntas recientes", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Más recientes", color = Color(0xFF5D5FEF), fontSize = 12.sp)
+            }
+
             LazyColumn(
-                contentPadding = PaddingValues(16.dp, bottom = 100.dp),
+                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 val filteredPosts = posts.filter { 
-                    (selectedCategory == "Todos" || it.category == selectedCategory) &&
+                    (selectedCategory == "Todas" || it.category == selectedCategory) &&
                     (it.title.contains(searchQuery, true) || it.body.contains(searchQuery, true))
                 }
                 
                 items(filteredPosts) { post ->
-                    ForoPostItem(
-                        votes = post.votes,
-                        title = post.title,
-                        body = post.body,
-                        author = post.author,
-                        category = post.category,
-                        onVote = { delta -> viewModel.vote(post.id, delta) }
-                    )
+                    ForoPostItemPremium(post = post, onVote = { delta -> viewModel.vote(post.id, delta) })
+                }
+                
+                // Sugerencia IA
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0FF))
+                    ) {
+                        Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(modifier = Modifier.size(45.dp), shape = CircleShape, color = Color.White) {
+                                Icon(Icons.Default.SmartToy, contentDescription = null, tint = Color(0xFF5D5FEF), modifier = Modifier.padding(10.dp))
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("¿No encuentras respuesta?", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                Text("Pregunta a StudyMind AI y obtén ayuda instantánea", fontSize = 12.sp, color = Color.Gray)
+                            }
+                            Button(
+                                onClick = { },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF5D5FEF)),
+                                elevation = ButtonDefaults.buttonElevation(2.dp)
+                            ) {
+                                Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("IA", fontSize = 12.sp)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -145,50 +206,75 @@ fun ForumScreen(viewModel: ForumViewModel) {
 }
 
 @Composable
-fun ForoPostItem(votes: Int, title: String, body: String, author: String, category: String, onVote: (Int) -> Unit) {
+fun ForoPostItemPremium(post: ForumPost, onVote: (Int) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
     ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(onClick = { onVote(1) }, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.ArrowDropUp, contentDescription = "Up", modifier = Modifier.size(32.dp))
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = Color.LightGray) {
+                    Icon(Icons.Default.Person, contentDescription = null)
                 }
-                Text("$votes", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
-                IconButton(onClick = { onVote(-1) }, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Down", modifier = Modifier.size(32.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(post.author, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Estudiante • Hace 1 hora", fontSize = 11.sp, color = Color.Gray)
+                }
+                IconButton(onClick = { }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = Color.Gray)
                 }
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
-            Column(modifier = Modifier.weight(1f)) {
-                Surface(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        category,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text(body, fontSize = 14.sp, maxLines = 2)
-                Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                color = Color(0xFFF0F0FF),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    post.category,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF5D5FEF)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(post.title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color.Black)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(post.body, fontSize = 14.sp, color = Color.Gray, maxLines = 3)
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Por: $author", fontSize = 11.sp)
+                    Text("5 respuestas", fontSize = 12.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("23 vistas", fontSize = 12.sp, color = Color.Gray)
+                }
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { onVote(1) }, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.Default.ThumbUp, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.Gray)
+                    }
+                    Text("${post.votes}", modifier = Modifier.padding(horizontal = 4.dp), fontWeight = FontWeight.Bold)
+                    IconButton(onClick = { onVote(-1) }, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.Default.ThumbDown, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.Gray)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = Color.Gray)
                 }
             }
         }

@@ -1,9 +1,12 @@
 package com.example.mindsai.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
@@ -11,12 +14,17 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object Login : Screen("login", "Login", Icons.Default.Person)
     object Register : Screen("register", "Register", Icons.Default.Person)
     object Home : Screen("home", "Inicio", Icons.Default.Home)
+    object Calendar : Screen("calendar", "Calendario", Icons.Default.CalendarMonth)
+    object IA : Screen("ia", "IA", Icons.Default.SmartToy)
     object Forum : Screen("forum", "Foro", Icons.Default.Forum)
     object Profile : Screen("profile", "Perfil", Icons.Default.Person)
+    object Tasks : Screen("tasks", "Tareas", Icons.Default.CheckCircle)
 }
 
 val bottomNavItems = listOf(
     Screen.Home,
+    Screen.Calendar,
+    Screen.Tasks,
     Screen.Forum,
     Screen.Profile,
 )

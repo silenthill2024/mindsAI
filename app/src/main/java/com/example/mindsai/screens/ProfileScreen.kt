@@ -12,8 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,203 +30,227 @@ fun ProfileScreen(
     onLogout: () -> Unit = {}
 ) {
     val user = UserSession.currentUser
-    var nombre by remember { mutableStateOf(user?.nombre ?: "") }
-    var description by remember { mutableStateOf(user?.description ?: "") }
-    var correo by remember { mutableStateOf(user?.correo ?: "") }
-    var notificaciones by remember { mutableStateOf(true) }
-    var horasEstudio by remember { mutableFloatStateOf(4f) }
-
     val scrollState = rememberScrollState()
+    var showEditDialog by remember { mutableStateOf(false) }
     
     val headerGradient = Brush.verticalGradient(
-        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
+        colors = listOf(Color(0xFFEDE7F6), Color(0xFFF8F9FF))
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFFF8F9FF))
             .verticalScroll(scrollState)
     ) {
-        // Header de Perfil Moderno
+        // 1. Header de Perfil
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
                 .background(headerGradient)
+                .padding(24.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Surface(
-                    modifier = Modifier.size(100.dp),
-                    shape = CircleShape,
-                    color = Color.White.copy(alpha = 0.2f)
-                ) {
-                    Icon(
-                        Icons.Default.Person, 
-                        contentDescription = null, 
-                        modifier = Modifier.padding(20.dp),
-                        tint = Color.White
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    IconButton(onClick = { }) {
+                        Icon(Icons.Default.Settings, contentDescription = null, tint = Color.Gray)
+                    }
+                }
+                
+                Box(contentAlignment = Alignment.BottomEnd) {
+                    Surface(
+                        modifier = Modifier.size(100.dp),
+                        shape = CircleShape,
+                        color = Color(0xFF673AB7).copy(alpha = 0.1f)
+                    ) {
+                        Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(20.dp), tint = Color(0xFF673AB7))
+                    }
+                    IconButton(
+                        onClick = { showEditDialog = true },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(Color.White, CircleShape)
+                            .clip(CircleShape)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color(0xFF673AB7))
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(user?.nombre ?: "Usuario", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                Text("Nivel ${user?.level ?: 1} - Estudiante", fontSize = 14.sp, color = Color(0xFF673AB7), fontWeight = FontWeight.Bold)
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = if (user?.description.isNullOrBlank()) "Añade una descripción sobre ti..." else user!!.description,
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 12.dp)) {
+                    Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(12.dp), tint = Color.Gray)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(user?.correo ?: "correo@mindsai.com", fontSize = 12.sp, color = Color.Gray)
+                }
+            }
+        }
+
+        // 2. XP & Level Card
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(2.dp)
+        ) {
+            Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                Surface(modifier = Modifier.size(45.dp), shape = CircleShape, color = Color(0xFF673AB7)) {
+                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color.White, modifier = Modifier.padding(10.dp))
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Progreso de Nivel", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    val xpProgress = (user?.xp?.toFloat() ?: 0f) / 1000f // Ejemplo 1000 XP por nivel
+                    LinearProgressIndicator(
+                        progress = { xpProgress.coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                        color = Color(0xFF673AB7),
+                        trackColor = Color(0xFFEDE7F6)
                     )
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = nombre,
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = correo,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 14.sp
-                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("${user?.xp ?: 0} XP", fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = Color(0xFF673AB7))
             }
         }
 
-        Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .offset(y = (-30).dp)
+        // 3. Stats Row
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(24.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Card de Información
-            ProfileSectionCard(title = "Datos de la Cuenta") {
+            StatItemLarge(Icons.Default.CheckCircle, "${user?.tasksCompleted ?: 0}", "Tareas")
+            StatItemLarge(Icons.Default.Schedule, "${user?.studyHours ?: 0}h", "Estudio")
+            StatItemLarge(Icons.Default.TrendingUp, "4.8", "Promedio")
+        }
+
+        // 6. Cuenta
+        Text("Mi Cuenta", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(horizontal = 24.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(24.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                AccountRow(Icons.Default.Badge, "Editar información", onClick = { showEditDialog = true })
+                AccountRow(Icons.Default.NotificationsNone, "Notificaciones")
+                AccountRow(Icons.Default.Shield, "Seguridad")
+            }
+        }
+
+        // 7. Cerrar Sesión
+        Button(
+            onClick = onLogout,
+            modifier = Modifier.fillMaxWidth().padding(24.dp).height(56.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEBEE), contentColor = Color.Red)
+        ) {
+            Icon(Icons.Default.ExitToApp, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Cerrar sesión", fontWeight = FontWeight.Bold)
+        }
+        
+        Spacer(modifier = Modifier.height(100.dp))
+    }
+
+    if (showEditDialog) {
+        EditProfileDialog(
+            currentName = user?.nombre ?: "",
+            currentDesc = user?.description ?: "",
+            onDismiss = { showEditDialog = false },
+            onSave = { name, desc ->
+                viewModel.updateProfile(name, desc)
+                showEditDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun EditProfileDialog(
+    currentName: String,
+    currentDesc: String,
+    onDismiss: () -> Unit,
+    onSave: (String, String) -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    var desc by remember { mutableStateOf(currentDesc) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar Perfil", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
+                    value = name,
+                    onValueChange = { name = it },
                     label = { Text("Nombre") },
-                    leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
+                    value = desc,
+                    onValueChange = { desc = it },
                     label = { Text("Descripción") },
-                    leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
                     minLines = 3
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = correo,
-                    onValueChange = { correo = it },
-                    label = { Text("Correo Electrónico") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = false
-                )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Card de Metas
-            ProfileSectionCard(title = "Meta de Estudio") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Objetivo diario:", fontSize = 14.sp)
-                    Text("${horasEstudio.toInt()} horas", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                }
-                Slider(
-                    value = horasEstudio,
-                    onValueChange = { horasEstudio = it },
-                    valueRange = 1f..12f,
-                    steps = 11
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Card de Configuración
-            ProfileSectionCard(title = "Configuración") {
-                SettingsRow(
-                    icon = Icons.Default.DarkMode,
-                    label = "Modo Oscuro",
-                    checked = isDarkMode,
-                    onCheckedChange = onThemeChange
-                )
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                SettingsRow(
-                    icon = Icons.Default.Notifications,
-                    label = "Notificaciones",
-                    checked = notificaciones,
-                    onCheckedChange = { notificaciones = it }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Botones de Acción
+        },
+        confirmButton = {
             Button(
-                onClick = { viewModel.updateProfile(nombre, description) },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp)
+                onClick = { onSave(name, desc) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF673AB7))
             ) {
-                Text("Actualizar Perfil", fontWeight = FontWeight.Bold)
+                Text("Guardar Cambios")
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = onLogout,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-            ) {
-                Icon(Icons.Default.ExitToApp, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = Color.Gray)
             }
-            
-            Spacer(modifier = Modifier.height(100.dp))
         }
+    )
+}
+
+@Composable
+fun StatItemLarge(icon: ImageVector, value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Surface(modifier = Modifier.size(45.dp), shape = RoundedCornerShape(12.dp), color = Color(0xFFEDE7F6)) {
+            Icon(icon, contentDescription = null, tint = Color(0xFF673AB7), modifier = Modifier.padding(12.dp))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(value, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(label, fontSize = 10.sp, color = Color.Gray)
     }
 }
 
 @Composable
-fun ProfileSectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
+fun AccountRow(icon: ImageVector, label: String, onClick: () -> Unit = {}) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            content()
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(label, fontSize = 14.sp)
+            }
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
         }
-    }
-}
-
-@Composable
-fun SettingsRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(label, fontSize = 15.sp)
-        }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

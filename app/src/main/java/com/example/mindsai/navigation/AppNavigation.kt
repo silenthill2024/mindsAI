@@ -1,6 +1,10 @@
 package com.example.mindsai.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -68,9 +72,26 @@ fun AppNavigation(
         }
         composable(Screen.Home.route) { 
             val homeViewModel: HomeViewModel = viewModel(factory = factory)
-            HomeScreen(viewModel = homeViewModel) 
+            HomeScreen(viewModel = homeViewModel, onNavigateToTasks = { navController.navigate(Screen.Tasks.route) }) 
+        }
+
+        composable(Screen.Tasks.route) {
+            val homeViewModel: HomeViewModel = viewModel(factory = factory)
+            TasksScreen(viewModel = homeViewModel)
         }
         
+        composable(Screen.Calendar.route) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Pantalla de Calendario (Próximamente)")
+            }
+        }
+
+        composable(Screen.IA.route) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Pantalla de IA (Tutor Inteligente)")
+            }
+        }
+
         composable(Screen.Forum.route) { 
             val forumViewModel: ForumViewModel = viewModel(factory = factory)
             ForumScreen(viewModel = forumViewModel) 
