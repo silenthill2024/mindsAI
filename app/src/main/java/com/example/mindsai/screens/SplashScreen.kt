@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
+import androidx.compose.ui.res.painterResource
+import com.example.mindsai.R
+
 @Composable
 fun SplashScreen(onNavigateToLogin: () -> Unit) {
     // Animación de escala y transparencia
@@ -55,10 +58,10 @@ fun SplashScreen(onNavigateToLogin: () -> Unit) {
             modifier = Modifier.alpha(alpha.value).scale(scale.value)
         ) {
             Icon(
-                imageVector = Icons.Default.Psychology, // Icono de Cerebro/IA
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(100.dp)
+                painter = painterResource(id = R.drawable.ic_logo),
+                contentDescription = "MindsAI Logo",
+                tint = Color.Unspecified,
+                modifier = Modifier.size(150.dp)
             )
             
             Spacer(modifier = Modifier.height(16.dp))

@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mindsai.viewmodel.RegisterViewModel
 
+import androidx.compose.ui.res.painterResource
+import com.example.mindsai.R
+
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel,
@@ -56,10 +59,10 @@ fun RegisterScreen(
                 color = Color.White.copy(alpha = 0.2f)
             ) {
                 Icon(
-                    Icons.Default.AppRegistration,
+                    painter = painterResource(id = R.drawable.ic_logo),
                     contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.padding(16.dp).size(48.dp)
+                    tint = Color.Unspecified,
+                    modifier = Modifier.padding(12.dp).size(56.dp)
                 )
             }
 

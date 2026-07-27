@@ -20,5 +20,8 @@ data class UserEntity(
     val level: Int = 1,
     val xp: Int = 0,
     val studyHours: Int = 0,
-    val tasksCompleted: Int = 0
+    val studyMinutes: Int = 0,
+    val tasksCompleted: Int = 0,
+    val averageGrade: Float = 0f,
+    val profileImageUrl: String? = null
 )

@@ -33,7 +33,7 @@ fun AppBottomNavigation(navController: NavHostController) {
             .padding(horizontal = 24.dp, vertical = 20.dp)
             .height(64.dp)
             .fillMaxWidth(),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(32.dp),
         shadowElevation = 10.dp
     ) {
@@ -66,7 +66,7 @@ fun AppBottomNavigation(navController: NavHostController) {
 
 @Composable
 fun BottomNavItem(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
-    val color by animateColorAsState(if (selected) Color(0xFF673AB7) else Color.Gray, label = "")
+    val color by animateColorAsState(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), label = "")
     val scale by animateFloatAsState(if (selected) 1.1f else 1.0f, label = "")
 
     Column(

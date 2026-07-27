@@ -76,4 +76,44 @@ class UserRepository(private val userDao: UserDao) {
             e.printStackTrace()
         }
     }
+
+    suspend fun updatePassword(userId: Int, newPassword: String) {
+        try {
+            userDao.updatePassword(userId, newPassword)
+            profileTable.update({
+                set("password", newPassword)
+            }) {
+                filter { eq("id", userId) }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun updateStudyTime(userId: Int, hours: Int, minutes: Int) {
+        try {
+            userDao.updateStudyTime(userId, hours, minutes)
+            profileTable.update({
+                set("studyHours", hours)
+                set("studyMinutes", minutes)
+            }) {
+                filter { eq("id", userId) }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun updateAverageGrade(userId: Int, grade: Float) {
+        try {
+            userDao.updateAverageGrade(userId, grade)
+            profileTable.update({
+                set("averageGrade", grade)
+            }) {
+                filter { eq("id", userId) }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 }

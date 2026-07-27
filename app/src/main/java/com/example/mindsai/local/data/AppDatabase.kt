@@ -10,7 +10,7 @@ import androidx.room.RoomDatabase
         QuoteEntity::class,
         TaskEntity::class
     ],
-    version = 5, // Incremented version for gamification fields
+    version = 7, // Incremented for study tracking and average
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

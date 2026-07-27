@@ -8,6 +8,10 @@ import com.example.mindsai.repository.StudyRepository
 import com.example.mindsai.repository.UserRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -17,6 +21,14 @@ class HomeViewModel(
 ) : ViewModel() {
 
     val userId = UserSession.currentUser?.id ?: 0
+
+    private val _studyTimer = MutableStateFlow(0L) // segundos
+    val studyTimer = _studyTimer.asStateFlow()
+
+    private val _isTimerRunning = MutableStateFlow(false)
+    val isTimerRunning = _isTimerRunning.asStateFlow()
+
+    private var timerJob: Job? = null
 
     val tasks: StateFlow<List<TaskEntity>> = repository.getTasksForUser(userId)
         .stateIn(
@@ -48,6 +60,55 @@ class HomeViewModel(
             if (!wasCompleted && isNowCompleted) {
                 awardXp(50)
             }
+        }
+    }
+
+    fun toggleStudyTimer() {
+        if (_isTimerRunning.value) {
+            stopStudyTimer()
+        } else {
+            startStudyTimer()
+        }
+    }
+
+    private fun startStudyTimer() {
+        _isTimerRunning.value = true
+        timerJob = viewModelScope.launch {
+            while (_isTimerRunning.value) {
+                delay(1000)
+                _studyTimer.value++
+            }
+        }
+    }
+
+    private fun stopStudyTimer() {
+        _isTimerRunning.value = false
+        timerJob?.cancel()
+        
+        val seconds = _studyTimer.value
+        val user = UserSession.currentUser ?: return
+        
+        // Convertir a minutos totales
+        val sessionMinutes = (seconds / 60).toInt()
+        if (sessionMinutes > 0) {
+            val totalMinutes = user.studyMinutes + sessionMinutes
+            val totalHours = user.studyHours + (totalMinutes / 60)
+            val remainingMinutes = totalMinutes % 60
+            
+            viewModelScope.launch {
+                userRepository.updateStudyTime(user.id, totalHours, remainingMinutes)
+                UserSession.currentUser = user.copy(studyHours = totalHours, studyMinutes = remainingMinutes)
+                awardXp(sessionMinutes * 2) // 2 XP por minuto de estudio
+            }
+        }
+        _studyTimer.value = 0
+    }
+
+    fun updateAverage(newAverage: Float) {
+        val user = UserSession.currentUser ?: return
+        viewModelScope.launch {
+            userRepository.updateAverageGrade(user.id, newAverage)
+            UserSession.currentUser = user.copy(averageGrade = newAverage)
         }
     }
 

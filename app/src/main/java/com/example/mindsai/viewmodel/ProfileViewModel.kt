@@ -18,4 +18,22 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
             UserSession.currentUser = updatedUser
         }
     }
+
+    fun changePassword(newPassword: String) {
+        val currentUser = UserSession.currentUser ?: return
+        viewModelScope.launch {
+            userRepository.updatePassword(currentUser.id, newPassword)
+            UserSession.currentUser = currentUser.copy(password = newPassword)
+        }
+    }
+
+    fun updateProfileImage(uri: String) {
+        val currentUser = UserSession.currentUser ?: return
+        val updatedUser = currentUser.copy(profileImageUrl = uri)
+        
+        viewModelScope.launch {
+            userRepository.updateUser(updatedUser)
+            UserSession.currentUser = updatedUser
+        }
+    }
 }

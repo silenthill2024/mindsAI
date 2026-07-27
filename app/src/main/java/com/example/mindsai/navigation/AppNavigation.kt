@@ -1,12 +1,21 @@
 package com.example.mindsai.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.res.painterResource
+import com.example.mindsai.R
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -81,14 +90,43 @@ fun AppNavigation(
         }
         
         composable(Screen.Calendar.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Pantalla de Calendario (Próximamente)")
-            }
+            CalendarScreen()
         }
 
-        composable(Screen.IA.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Pantalla de IA (Tutor Inteligente)")
+        composable(Screen.Brain.route) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(Color(0xFFF8F9FF)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(120.dp),
+                        tint = Color.Unspecified
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        "Módulo Cerebral IA", 
+                        fontSize = 24.sp, 
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF673AB7)
+                    )
+                    Text(
+                        "Próximamente", 
+                        fontSize = 16.sp, 
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    Text(
+                        "Estamos entrenando tu nuevo tutor...",
+                        fontSize = 12.sp,
+                        color = Color.LightGray
+                    )
+                }
             }
         }
 

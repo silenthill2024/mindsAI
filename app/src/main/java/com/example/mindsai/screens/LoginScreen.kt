@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mindsai.viewmodel.LoginViewModel
 
+import androidx.compose.ui.res.painterResource
+import com.example.mindsai.R
+
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
@@ -52,10 +55,10 @@ fun LoginScreen(
                 color = Color.White.copy(alpha = 0.2f)
             ) {
                 Icon(
-                    Icons.Default.SmartToy,
+                    painter = painterResource(id = R.drawable.ic_logo),
                     contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.padding(20.dp).size(50.dp)
+                    tint = Color.Unspecified,
+                    modifier = Modifier.padding(16.dp).size(60.dp)
                 )
             }
 

@@ -1,0 +1,32 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Silueta de la Cabeza (Perfil Izquierdo) - Blanco Puro -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M65,85 C65,85 65,70 65,70 C75,64 80,53 80,41 C80,24 67,11 50,11 C33,11 20,24 20,41 C20,45 21,48 22,51 L17,56 L22,60 C22,68 26,76 33,81 L33,85 L65,85 Z" />
+
+    <!-- Engranaje Morado -->
+    <path
+        android:fillColor="#5D5FEF"
+        android:pathData="M50,26 L53,26 L54,23 L58,23 L59,26 L62,28 L66,26 L69,29 L67,33 L69,36 L73,37 L73,41 L69,42 L67,45 L69,49 L66,52 L62,50 L59,52 L58,55 L54,55 L53,52 L50,52 L47,52 L46,55 L42,55 L41,52 L38,50 L34,52 L31,49 L33,45 L31,42 L27,41 L27,37 L31,36 L33,33 L31,29 L34,26 L38,28 L41,26 L42,23 L46,23 L47,26 Z" />
+
+    <!-- Centro Esférico Blanco/Gradiente -->
+    <path
+        android:pathData="M50,32 A7,7 0,1,1 50,46 A7,7 0,1,1 50,32 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="50"
+                android:centerY="39"
+                android:gradientRadius="7"
+                android:type="radial">
+                <item android:color="#FFFFFF" android:offset="0" />
+                <item android:color="#F0F0FF" android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

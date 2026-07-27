@@ -37,7 +37,7 @@ fun TasksScreen(viewModel: HomeViewModel) {
             TopAppBar(
                 title = { Text("Mis Tareas y Progreso", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7),
+                    containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = Color.White
                 )
             )
@@ -47,7 +47,7 @@ fun TasksScreen(viewModel: HomeViewModel) {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FF))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Panel de Progreso General
             ProgressOverviewCard(totalProgress, completedTasks.size, tasks.size)
@@ -55,24 +55,24 @@ fun TasksScreen(viewModel: HomeViewModel) {
             // Tabs para filtrar
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color.White,
-                contentColor = Color(0xFF673AB7),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = Color(0xFF673AB7)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Pendientes (${pendingTasks.size})") }
+                    text = { Text("Pendientes (${pendingTasks.size})", color = if (selectedTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Completadas (${completedTasks.size})") }
+                    text = { Text("Completadas (${completedTasks.size})", color = if (selectedTab == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) }
                 )
             }
 
@@ -92,12 +92,12 @@ fun TasksScreen(viewModel: HomeViewModel) {
                                     Icons.Default.TaskAlt, 
                                     contentDescription = null, 
                                     modifier = Modifier.size(64.dp),
-                                    tint = Color.LightGray
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     if (selectedTab == 0) "No tienes tareas pendientes" else "Aún no has completado tareas",
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }
                         }
@@ -122,7 +122,7 @@ fun ProgressOverviewCard(progress: Float, completed: Int, total: Int) {
             .fillMaxWidth()
             .padding(16.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF673AB7)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {

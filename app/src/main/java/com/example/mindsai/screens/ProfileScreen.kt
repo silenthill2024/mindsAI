@@ -1,6 +1,9 @@
 package com.example.mindsai.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,9 +19,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.mindsai.local.UserSession
 import com.example.mindsai.viewmodel.ProfileViewModel
 
@@ -32,15 +37,25 @@ fun ProfileScreen(
     val user = UserSession.currentUser
     val scrollState = rememberScrollState()
     var showEditDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+
+    val imageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { viewModel.updateProfileImage(it.toString()) }
+    }
     
     val headerGradient = Brush.verticalGradient(
-        colors = listOf(Color(0xFFEDE7F6), Color(0xFFF8F9FF))
+        colors = if (isDarkMode) 
+            listOf(Color(0xFF311B92), Color(0xFF121212))
+        else 
+            listOf(Color(0xFFEDE7F6), Color(0xFFF8F9FF))
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FF))
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
         // 1. Header de Perfil
@@ -53,46 +68,62 @@ fun ProfileScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     IconButton(onClick = { }) {
-                        Icon(Icons.Default.Settings, contentDescription = null, tint = Color.Gray)
+                        Icon(Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     }
                 }
                 
                 Box(contentAlignment = Alignment.BottomEnd) {
                     Surface(
-                        modifier = Modifier.size(100.dp),
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clickable { imageLauncher.launch("image/*") },
                         shape = CircleShape,
-                        color = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     ) {
-                        Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(20.dp), tint = Color(0xFF673AB7))
+                        if (!user?.profileImageUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = user?.profileImageUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Person, 
+                                contentDescription = null, 
+                                modifier = Modifier.padding(20.dp), 
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                     IconButton(
                         onClick = { showEditDialog = true },
                         modifier = Modifier
                             .size(32.dp)
-                            .background(Color.White, CircleShape)
+                            .background(MaterialTheme.colorScheme.surface, CircleShape)
                             .clip(CircleShape)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color(0xFF673AB7))
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(user?.nombre ?: "Usuario", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-                Text("Nivel ${user?.level ?: 1} - Estudiante", fontSize = 14.sp, color = Color(0xFF673AB7), fontWeight = FontWeight.Bold)
+                Text(user?.nombre ?: "Usuario", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
+                Text("Nivel ${user?.level ?: 1} - Estudiante", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = if (user?.description.isNullOrBlank()) "Añade una descripción sobre ti..." else user!!.description,
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     modifier = Modifier.padding(horizontal = 32.dp),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 12.dp)) {
-                    Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(12.dp), tint = Color.Gray)
+                    Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(user?.correo ?: "correo@mindsai.com", fontSize = 12.sp, color = Color.Gray)
+                    Text(user?.correo ?: "correo@mindsai.com", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 }
             }
         }
@@ -101,26 +132,26 @@ fun ProfileScreen(
         Card(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(2.dp)
         ) {
             Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(modifier = Modifier.size(45.dp), shape = CircleShape, color = Color(0xFF673AB7)) {
+                Surface(modifier = Modifier.size(45.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
                     Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color.White, modifier = Modifier.padding(10.dp))
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Progreso de Nivel", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Progreso de Nivel", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                     val xpProgress = (user?.xp?.toFloat() ?: 0f) / 1000f // Ejemplo 1000 XP por nivel
                     LinearProgressIndicator(
                         progress = { xpProgress.coerceIn(0f, 1f) },
                         modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-                        color = Color(0xFF673AB7),
-                        trackColor = Color(0xFFEDE7F6)
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("${user?.xp ?: 0} XP", fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = Color(0xFF673AB7))
+                Text("${user?.xp ?: 0} XP", fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -131,20 +162,67 @@ fun ProfileScreen(
         ) {
             StatItemLarge(Icons.Default.CheckCircle, "${user?.tasksCompleted ?: 0}", "Tareas")
             StatItemLarge(Icons.Default.Schedule, "${user?.studyHours ?: 0}h", "Estudio")
-            StatItemLarge(Icons.Default.TrendingUp, "4.8", "Promedio")
+            StatItemLarge(Icons.Default.TrendingUp, String.format("%.1f", user?.averageGrade ?: 0f), "Promedio")
         }
 
-        // 6. Cuenta
-        Text("Mi Cuenta", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(horizontal = 24.dp))
+        // 6. Configuración
+        Text("Configuración", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.onSurface)
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.DarkMode, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Modo Oscuro", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    Switch(
+                        checked = isDarkMode,
+                        onCheckedChange = onThemeChange,
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary)
+                    )
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Notificaciones", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    var notificationsEnabled by remember { mutableStateOf(true) }
+                    Switch(
+                        checked = notificationsEnabled,
+                        onCheckedChange = { notificationsEnabled = it },
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 7. Cuenta
+        Text("Mi Cuenta", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.onSurface)
         Card(
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 AccountRow(Icons.Default.Badge, "Editar información", onClick = { showEditDialog = true })
                 AccountRow(Icons.Default.NotificationsNone, "Notificaciones")
-                AccountRow(Icons.Default.Shield, "Seguridad")
+                AccountRow(Icons.Default.Shield, "Seguridad (Cambiar contraseña)", onClick = { showPasswordDialog = true })
             }
         }
 
@@ -174,6 +252,73 @@ fun ProfileScreen(
             }
         )
     }
+
+    if (showPasswordDialog) {
+        ChangePasswordDialog(
+            onDismiss = { showPasswordDialog = false },
+            onSave = { newPass ->
+                viewModel.changePassword(newPass)
+                showPasswordDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun ChangePasswordDialog(
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Cambiar Contraseña", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it; error = null },
+                    label = { Text("Nueva Contraseña") },
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it; error = null },
+                    label = { Text("Confirmar Contraseña") },
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (error != null) {
+                    Text(error!!, color = Color.Red, fontSize = 12.sp)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { 
+                    if (newPassword.length < 6) {
+                        error = "Mínimo 6 caracteres"
+                    } else if (newPassword != confirmPassword) {
+                        error = "Las contraseñas no coinciden"
+                    } else {
+                        onSave(newPassword)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF673AB7))
+            ) {
+                Text("Actualizar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = Color.Gray)
+            }
+        }
+    )
 }
 
 @Composable

@@ -41,11 +41,11 @@ fun ForumScreen(viewModel: ForumViewModel) {
     val posts by viewModel.posts.collectAsState()
 
     Scaffold(
-        containerColor = Color(0xFFF8F9FF),
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = Color(0xFF5D5FEF),
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(20.dp),
                 icon = { Icon(Icons.Default.Edit, contentDescription = null) },
@@ -62,22 +62,22 @@ fun ForumScreen(viewModel: ForumViewModel) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Foro", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black)
+                        Text("Foro", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color(0xFF5D5FEF))
+                        Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     }
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         BadgedBox(badge = { Badge { Text("3") } }) {
-                            Icon(Icons.Default.NotificationsNone, contentDescription = null)
+                            Icon(Icons.Default.NotificationsNone, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Surface(modifier = Modifier.size(35.dp), shape = CircleShape, color = Color.LightGray) {
-                            Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(4.dp))
+                        Surface(modifier = Modifier.size(35.dp), shape = CircleShape, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)) {
+                            Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(4.dp), tint = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
-                Text("Pregunta, aprende y comparte conocimientos", fontSize = 14.sp, color = Color.Gray)
+                Text("Pregunta, aprende y comparte conocimientos", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
@@ -90,8 +90,8 @@ fun ForumScreen(viewModel: ForumViewModel) {
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color.White,
-                            focusedContainerColor = Color.White
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface
                         ),
                         singleLine = true
                     )
@@ -99,11 +99,11 @@ fun ForumScreen(viewModel: ForumViewModel) {
                     Surface(
                         modifier = Modifier.size(54.dp),
                         shape = RoundedCornerShape(16.dp),
-                        color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
+                        color = MaterialTheme.colorScheme.surface,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                     ) {
                         IconButton(onClick = {}) {
-                            Icon(Icons.Default.Tune, contentDescription = "Filtro")
+                            Icon(Icons.Default.Tune, contentDescription = "Filtro", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
@@ -121,7 +121,7 @@ fun ForumScreen(viewModel: ForumViewModel) {
                         modifier = Modifier.width(100.dp).height(110.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) Color(0xFF5D5FEF) else Color.White
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
                         ),
                         elevation = CardDefaults.cardElevation(if (isSelected) 4.dp else 1.dp)
                     ) {
@@ -130,10 +130,10 @@ fun ForumScreen(viewModel: ForumViewModel) {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(icon, contentDescription = null, tint = if (isSelected) Color.White else Color(0xFF5D5FEF))
+                            Icon(icon, contentDescription = null, tint = if (isSelected) Color.White else MaterialTheme.colorScheme.primary)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(name, fontSize = 11.sp, color = if (isSelected) Color.White else Color.Black, fontWeight = FontWeight.Bold)
-                            Text("28", fontSize = 10.sp, color = if (isSelected) Color.White.copy(alpha = 0.7f) else Color.Gray)
+                            Text(name, fontSize = 11.sp, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                            Text("28", fontSize = 10.sp, color = if (isSelected) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                         }
                     }
                 }
@@ -144,8 +144,8 @@ fun ForumScreen(viewModel: ForumViewModel) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Preguntas recientes", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Más recientes", color = Color(0xFF5D5FEF), fontSize = 12.sp)
+                Text("Preguntas recientes", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
+                Text("Más recientes", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
             }
 
             LazyColumn(
@@ -166,21 +166,21 @@ fun ForumScreen(viewModel: ForumViewModel) {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                         shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0FF))
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                     ) {
                         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Surface(modifier = Modifier.size(45.dp), shape = CircleShape, color = Color.White) {
-                                Icon(Icons.Default.SmartToy, contentDescription = null, tint = Color(0xFF5D5FEF), modifier = Modifier.padding(10.dp))
+                            Surface(modifier = Modifier.size(45.dp), shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+                                Icon(Icons.Default.SmartToy, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(10.dp))
                             }
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("¿No encuentras respuesta?", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                                Text("Pregunta a StudyMind AI y obtén ayuda instantánea", fontSize = 12.sp, color = Color.Gray)
+                                Text("¿No encuentras respuesta?", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
+                                Text("Pregunta a MindsAI y obtén ayuda instantánea", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                             }
                             Button(
                                 onClick = { },
                                 shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF5D5FEF)),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.primary),
                                 elevation = ButtonDefaults.buttonElevation(2.dp)
                             ) {
                                 Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -210,28 +210,28 @@ fun ForoPostItemPremium(post: ForumPost, onVote: (Int) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = Color.LightGray) {
-                    Icon(Icons.Default.Person, contentDescription = null)
+                Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)) {
+                    Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(post.author, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Estudiante • Hace 1 hora", fontSize = 11.sp, color = Color.Gray)
+                    Text(post.author, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Estudiante • Hace 1 hora", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 }
                 IconButton(onClick = { }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = Color.Gray)
+                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 }
             }
             
             Spacer(modifier = Modifier.height(12.dp))
             
             Surface(
-                color = Color(0xFFF0F0FF),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
@@ -239,14 +239,14 @@ fun ForoPostItemPremium(post: ForumPost, onVote: (Int) -> Unit) {
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF5D5FEF)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             
             Spacer(modifier = Modifier.height(8.dp))
-            Text(post.title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color.Black)
+            Text(post.title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(post.body, fontSize = 14.sp, color = Color.Gray, maxLines = 3)
+            Text(post.body, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), maxLines = 3)
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -256,25 +256,25 @@ fun ForoPostItemPremium(post: ForumPost, onVote: (Int) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("5 respuestas", fontSize = 12.sp, color = Color.Gray)
+                    Text("5 respuestas", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     Spacer(modifier = Modifier.width(16.dp))
-                    Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                    Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("23 vistas", fontSize = 12.sp, color = Color.Gray)
+                    Text("23 vistas", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 }
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { onVote(1) }, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Default.ThumbUp, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.Gray)
+                        Icon(Icons.Default.ThumbUp, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     }
-                    Text("${post.votes}", modifier = Modifier.padding(horizontal = 4.dp), fontWeight = FontWeight.Bold)
+                    Text("${post.votes}", modifier = Modifier.padding(horizontal = 4.dp), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     IconButton(onClick = { onVote(-1) }, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Default.ThumbDown, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.Gray)
+                        Icon(Icons.Default.ThumbDown, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = Color.Gray)
+                    Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 }
             }
         }
@@ -288,7 +288,7 @@ fun CreatePostDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit)
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nueva Publicación") },
+        title = { Text("Nueva Publicación", color = MaterialTheme.colorScheme.onSurface) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
@@ -296,12 +296,12 @@ fun CreatePostDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit)
             }
         },
         confirmButton = {
-            Button(onClick = { if(title.isNotBlank()) onConfirm(title, body) }) {
+            Button(onClick = { if(title.isNotBlank()) onConfirm(title, body) }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
                 Text("Publicar")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) }
         }
     )
 }
