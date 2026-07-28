@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MindsAI"
+rootProject.name = "ProyectoDesDisInt"
 include(":app")
- 
+include(":proyectdeswear")
