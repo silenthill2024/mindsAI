@@ -20,8 +20,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -31,9 +35,9 @@ import com.example.proyectdeswear.presentation.theme.ProyectoDesDisIntTheme
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             ProyectoDesDisIntTheme {
                 WearApp()
@@ -44,16 +48,21 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WearApp() {
+
     var tasks by remember { mutableStateOf(listOf<Task>()) }
     var expandedTaskId by remember { mutableStateOf<String?>(null) }
     var feedbackMessage by remember { mutableStateOf<String?>(null) }
+
     val service = remember { FirebaseServiceWear() }
 
     LaunchedEffect(Unit) {
         service.listenTasks { updatedTasks ->
             tasks = updatedTasks
 
-            if (expandedTaskId != null && updatedTasks.none { it.documentId == expandedTaskId }) {
+            if (
+                expandedTaskId != null &&
+                updatedTasks.none { it.documentId == expandedTaskId }
+            ) {
                 expandedTaskId = null
             }
         }
@@ -61,7 +70,7 @@ fun WearApp() {
 
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage != null) {
-            delay(1800)
+            delay(1600)
             feedbackMessage = null
         }
     }
@@ -69,110 +78,218 @@ fun WearApp() {
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background)
+            .background(MaterialTheme.colors.background),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         item {
-            Text(
-                text = "Tareas de Hoy",
-                color = MaterialTheme.colors.primary
-            )
+            Column(
+                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "MindsAI",
+                    color = MaterialTheme.colors.primary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Tareas de Hoy",
+                    color = MaterialTheme.colors.onBackground,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
 
         feedbackMessage?.let { message ->
             item {
-                Text(
-                    text = message,
-                    color = MaterialTheme.colors.secondary
-                )
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp, vertical = 3.dp)
+                        .background(
+                            Color(0xFFEDE7FF),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        text = message,
+                        color = MaterialTheme.colors.primary,
+                        fontSize = 11.sp
+                    )
+                }
             }
         }
 
         if (tasks.isEmpty()) {
+
             item {
-                Text(
-                    text = "No hay tareas pendientes",
-                    color = MaterialTheme.colors.onBackground
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 5.dp)
+                        .background(
+                            Color.White,
+                            RoundedCornerShape(22.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Todo listo",
+                            color = MaterialTheme.colors.primary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = "No hay tareas pendientes",
+                            color = Color(0xFF1F1F24),
+                            fontSize = 12.sp
+                        )
+                    }
+                }
             }
+
         } else {
+
             tasks.forEach { task ->
+
                 item {
                     Chip(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+
                         label = {
                             Text(
                                 text = task.titulo,
-                                color = MaterialTheme.colors.onPrimary
+                                color = Color(0xFF1F1F24),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
                             )
                         },
+
                         secondaryLabel = {
                             TaskChipSubtitle(
                                 task = task,
                                 isExpanded = expandedTaskId == task.documentId
                             )
                         },
-                        colors = ChipDefaults.primaryChipColors(
-                            backgroundColor = MaterialTheme.colors.primary,
-                            contentColor = MaterialTheme.colors.onPrimary
+
+                        colors = ChipDefaults.chipColors(
+                            backgroundColor = Color.White,
+                            contentColor = Color(0xFF1F1F24)
                         ),
+
                         onClick = {
-                            expandedTaskId = if (expandedTaskId == task.documentId) {
-                                null
-                            } else {
-                                task.documentId
-                            }
+                            expandedTaskId =
+                                if (expandedTaskId == task.documentId) {
+                                    null
+                                } else {
+                                    task.documentId
+                                }
                         }
                     )
                 }
 
                 if (expandedTaskId == task.documentId) {
+
                     item {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 6.dp)
+                                .padding(horizontal = 12.dp, vertical = 3.dp)
                                 .background(
-                                    color = MaterialTheme.colors.surface,
-                                    shape = RoundedCornerShape(16.dp)
+                                    Color.White,
+                                    RoundedCornerShape(18.dp)
                                 )
-                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                                .padding(10.dp)
                         ) {
+
                             Text(
-                                text = "Descripcion",
-                                color = MaterialTheme.colors.primary
+                                text = task.descripcion.ifBlank { "Sin descripción" },
+                                color = Color(0xFF66646D),
+                                fontSize = 11.sp
                             )
-                            Text(
-                                text = task.descripcion.ifBlank { "Sin descripcion" },
-                                color = MaterialTheme.colors.onSurface
-                            )
+
                             Text(
                                 text = "Fecha: ${task.fecha.ifBlank { "Sin fecha" }}",
-                                color = MaterialTheme.colors.onSurface
+                                color = Color(0xFF66646D),
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(top = 3.dp)
                             )
+
                             Text(
                                 text = "Hora: ${task.hora.ifBlank { "Sin hora" }}",
-                                color = MaterialTheme.colors.onSurface
+                                color = Color(0xFF66646D),
+                                fontSize = 10.sp
                             )
-                            Row(
+
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 10.dp)
+                                    .padding(top = 7.dp)
+                                    .background(
+                                        MaterialTheme.colors.primary,
+                                        RoundedCornerShape(16.dp)
+                                    )
                                     .clickable {
                                         service.markTaskAsCompleted(
                                             task = task,
                                             onSuccess = {
                                                 expandedTaskId = null
-                                                feedbackMessage = "\"${task.titulo}\" completada"
+                                                feedbackMessage = "Tarea completada"
                                             },
                                             onFailure = {
-                                                feedbackMessage = "No se pudo completar la tarea"
+                                                feedbackMessage = "Error al completar"
                                             }
                                         )
-                                    },
-                                horizontalArrangement = Arrangement.Center
+                                    }
+                                    .padding(vertical = 7.dp),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "✓ Completar",
-                                    color = MaterialTheme.colors.secondary
+                                    text = "Completar",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 5.dp)
+                                    .background(
+                                        Color(0xFFFFE8EE),
+                                        RoundedCornerShape(16.dp)
+                                    )
+                                    .clickable {
+                                        service.deleteTask(
+                                            task = task,
+                                            onSuccess = {
+                                                expandedTaskId = null
+                                                feedbackMessage = "Tarea eliminada"
+                                            },
+                                            onFailure = {
+                                                feedbackMessage = "Error al eliminar"
+                                            }
+                                        )
+                                    }
+                                    .padding(vertical = 7.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Eliminar",
+                                    color = Color(0xFFD32F2F),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
@@ -180,34 +297,69 @@ fun WearApp() {
                 }
             }
         }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 7.dp)
+                    .background(
+                        MaterialTheme.colors.primary,
+                        RoundedCornerShape(18.dp)
+                    )
+                    .clickable {
+                        feedbackMessage = "Nueva tarea: próximamente"
+                    }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "+ Nueva tarea",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun TaskChipSubtitle(task: Task, isExpanded: Boolean) {
-    val time = task.hora.ifBlank { "Sin hora" }
-    val action = if (isExpanded) "Ocultar detalles" else "Ver detalles"
+private fun TaskChipSubtitle(
+    task: Task,
+    isExpanded: Boolean
+) {
 
-    Row {
+    val time = task.hora.ifBlank { "Sin hora" }
+
+    val action =
+        if (isExpanded) "Ocultar" else "Ver detalles"
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
         Box(
             modifier = Modifier
                 .background(
-                    color = MaterialTheme.colors.secondary,
-                    shape = RoundedCornerShape(10.dp)
+                    Color(0xFFEDE7FF),
+                    RoundedCornerShape(10.dp)
                 )
-                .padding(horizontal = 8.dp, vertical = 2.dp)
+                .padding(horizontal = 6.dp, vertical = 1.dp)
         ) {
             Text(
                 text = time,
-                color = MaterialTheme.colors.onPrimary
+                color = MaterialTheme.colors.primary,
+                fontSize = 10.sp
             )
         }
 
-        Box(modifier = Modifier.width(6.dp))
+        Box(modifier = Modifier.width(5.dp))
 
         Text(
             text = action,
-            color = MaterialTheme.colors.onPrimary
+            color = Color(0xFF66646D),
+            fontSize = 10.sp
         )
     }
 }

@@ -22,6 +22,9 @@ dependencyResolutionManagement {
     }
 }
 
+
+
 rootProject.name = "ProyectoDesDisInt"
 include(":app")
 include(":proyectdeswear")
+

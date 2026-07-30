@@ -49,6 +49,69 @@ class FirebaseServiceWear {
             .addOnFailureListener { onFailure() }
     }
 
+
+    fun createTestTask(
+        onSuccess: () -> Unit = {},
+        onFailure: () -> Unit = {}
+    ) {
+        val today = SimpleDateFormat(
+            "yyyy-MM-dd",
+            Locale.getDefault()
+        ).format(Date())
+
+        val data = hashMapOf<String, Any?>(
+            "id" to System.currentTimeMillis().toString(),
+            "titulo" to "Prueba smartwatch",
+            "descripcion" to "Conexion Firestore desde Wear OS",
+            "fecha" to today,
+            "hora" to "12:00",
+            "completado" to false,
+            "completionTime" to null
+        )
+
+        tasksCollection
+            .add(data)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure() }
+    }
+
+    fun deleteTask(
+        task: Task,
+        onSuccess: () -> Unit = {},
+        onFailure: () -> Unit = {}
+    ) {
+        if (task.documentId.isBlank()) {
+            onFailure()
+            return
+        }
+
+        tasksCollection
+            .document(task.documentId)
+            .delete()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure() }
+    }
+
+    fun createTask(
+        task: Task,
+        onSuccess: () -> Unit = {},
+        onFailure: () -> Unit = {}
+    ) {
+        val data = hashMapOf<String, Any?>(
+            "id" to task.id,
+            "titulo" to task.titulo,
+            "descripcion" to task.descripcion,
+            "fecha" to task.fecha,
+            "hora" to task.hora,
+            "completado" to false,
+            "completionTime" to null
+        )
+
+        tasksCollection
+            .add(data)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure() }
+    }
     private fun isTaskDueToday(taskDate: String, today: String): Boolean {
         val normalizedDate = taskDate.trim()
 
