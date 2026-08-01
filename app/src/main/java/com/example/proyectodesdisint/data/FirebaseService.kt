@@ -1,12 +1,25 @@
-package com.example.proyectodesdisint.data
+﻿package com.example.proyectodesdisint.data
 
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.proyectodesdisint.model.BlogPost
+import com.example.proyectodesdisint.model.BlogReply
 import com.example.proyectodesdisint.model.Task
+import com.example.proyectodesdisint.model.User
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class FirebaseService {
 
     private val db = FirebaseFirestore.getInstance()
+
     private val tasksCollection = db.collection("tasks")
+    private val blogsCollection = db.collection("blogs")
+    private val usersCollection = db.collection("users")
+
+    // =========================================================
+    // TAREAS
+    // =========================================================
 
     fun addTask(
         task: Task,
@@ -26,11 +39,17 @@ class FirebaseService {
     }
 
     fun listenTasks(onResult: (List<Task>) -> Unit) {
-        tasksCollection.addSnapshotListener { snapshot, _ ->
-            val tasks = snapshot?.mapNotNull { doc ->
-                val task = doc.toObject(Task::class.java)
-                task.documentId = doc.id
-                task
+        tasksCollection.addSnapshotListener { snapshot, error ->
+
+            if (error != null) {
+                onResult(emptyList())
+                return@addSnapshotListener
+            }
+
+            val tasks = snapshot?.documents?.mapNotNull { document ->
+                document.toObject(Task::class.java)?.also { task ->
+                    task.documentId = document.id
+                }
             } ?: emptyList()
 
             onResult(tasks)
@@ -42,6 +61,15 @@ class FirebaseService {
         onSuccess: (Task) -> Unit = {},
         onFailure: (Exception) -> Unit = {}
     ) {
+        if (task.documentId.isBlank()) {
+            onFailure(
+                IllegalArgumentException(
+                    "La tarea no contiene un documentId válido"
+                )
+            )
+            return
+        }
+
         tasksCollection.document(task.documentId)
             .update(
                 mapOf(
@@ -66,6 +94,15 @@ class FirebaseService {
         onSuccess: (String) -> Unit = {},
         onFailure: (Exception) -> Unit = {}
     ) {
+        if (documentId.isBlank()) {
+            onFailure(
+                IllegalArgumentException(
+                    "El documentId de la tarea está vacío"
+                )
+            )
+            return
+        }
+
         tasksCollection.document(documentId)
             .delete()
             .addOnSuccessListener {
@@ -75,4 +112,143 @@ class FirebaseService {
                 onFailure(error)
             }
     }
+
+    // =========================================================
+    // BLOG COMUNITARIO
+    // =========================================================
+
+    fun listenBlogs(
+        onResult: (List<BlogPost>) -> Unit
+    ) {
+        blogsCollection
+            .orderBy("fecha", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    onResult(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val blogs = snapshot?.documents?.mapNotNull { document ->
+                    document.toObject(BlogPost::class.java)?.copy(
+                        id = document.id
+                    )
+                } ?: emptyList()
+
+                onResult(blogs)
+            }
+    }
+
+    fun addBlogPost(
+        blogPost: BlogPost,
+        onSuccess: (BlogPost) -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val documentReference = blogsCollection.document()
+
+        val postWithId = blogPost.copy(
+            id = documentReference.id
+        )
+
+        documentReference
+            .set(postWithId)
+            .addOnSuccessListener {
+                onSuccess(postWithId)
+            }
+            .addOnFailureListener { error ->
+                onFailure(error)
+            }
+    }
+
+    fun listenBlogReplies(
+        blogId: String,
+        onResult: (List<BlogReply>) -> Unit
+    ) {
+        if (blogId.isBlank()) {
+            onResult(emptyList())
+            return
+        }
+
+        blogsCollection
+            .document(blogId)
+            .collection("replies")
+            .orderBy("fecha", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    onResult(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val replies = snapshot?.documents?.mapNotNull { document ->
+                    document.toObject(BlogReply::class.java)?.copy(
+                        id = document.id
+                    )
+                } ?: emptyList()
+
+                onResult(replies)
+            }
+    }
+
+    fun addBlogReply(
+        blogId: String,
+        reply: BlogReply,
+        onSuccess: (BlogReply) -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (blogId.isBlank()) {
+            onFailure(
+                IllegalArgumentException(
+                    "El identificador de la publicación está vacío"
+                )
+            )
+            return
+        }
+
+        val documentReference = blogsCollection
+            .document(blogId)
+            .collection("replies")
+            .document()
+
+        val replyWithId = reply.copy(
+            id = documentReference.id
+        )
+
+        documentReference
+            .set(replyWithId)
+            .addOnSuccessListener {
+                onSuccess(replyWithId)
+            }
+            .addOnFailureListener { error ->
+                onFailure(error)
+            }
+    }
+
+    // =========================================================
+    // PERFIL BÁSICO DEL AUTOR
+    // =========================================================
+
+    suspend fun getUserProfile(uid: String): User? =
+        suspendCoroutine { continuation ->
+
+            if (uid.isBlank()) {
+                continuation.resume(null)
+                return@suspendCoroutine
+            }
+
+            usersCollection
+                .document(uid)
+                .get()
+                .addOnSuccessListener { document ->
+
+                    val user = document
+                        .toObject(User::class.java)
+                        ?.copy(uid = uid)
+
+                    continuation.resume(user)
+                }
+                .addOnFailureListener {
+                    continuation.resume(null)
+                }
+        }
 }

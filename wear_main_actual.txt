@@ -1,0 +1,366 @@
+﻿package com.example.proyectdeswear.presentation
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.ScalingLazyColumn
+import androidx.wear.compose.material.Text
+import com.example.proyectdeswear.presentation.theme.ProyectoDesDisIntTheme
+import kotlinx.coroutines.delay
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContent {
+            ProyectoDesDisIntTheme {
+                WearApp()
+            }
+        }
+    }
+}
+
+@Composable
+fun WearApp() {
+
+    var tasks by remember { mutableStateOf(listOf<Task>()) }
+    var expandedTaskId by remember { mutableStateOf<String?>(null) }
+    var feedbackMessage by remember { mutableStateOf<String?>(null) }
+
+    val service = remember { FirebaseServiceWear() }
+
+    LaunchedEffect(Unit) {
+        service.listenTasks { updatedTasks ->
+            tasks = updatedTasks
+
+            if (
+                expandedTaskId != null &&
+                updatedTasks.none { it.documentId == expandedTaskId }
+            ) {
+                expandedTaskId = null
+            }
+        }
+    }
+
+    LaunchedEffect(feedbackMessage) {
+        if (feedbackMessage != null) {
+            delay(1600)
+            feedbackMessage = null
+        }
+    }
+
+    ScalingLazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        item {
+            Column(
+                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "MindsAI",
+                    color = MaterialTheme.colors.primary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Tareas de Hoy",
+                    color = MaterialTheme.colors.onBackground,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        feedbackMessage?.let { message ->
+            item {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp, vertical = 3.dp)
+                        .background(
+                            Color(0xFFEDE7FF),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        text = message,
+                        color = MaterialTheme.colors.primary,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+        }
+
+        if (tasks.isEmpty()) {
+
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 5.dp)
+                        .background(
+                            Color.White,
+                            RoundedCornerShape(22.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Todo listo",
+                            color = MaterialTheme.colors.primary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = "No hay tareas pendientes",
+                            color = Color(0xFF1F1F24),
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+
+        } else {
+
+            tasks.forEach { task ->
+
+                item {
+                    Chip(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+
+                        label = {
+                            Text(
+                                text = task.titulo,
+                                color = Color(0xFF1F1F24),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        },
+
+                        secondaryLabel = {
+                            TaskChipSubtitle(
+                                task = task,
+                                isExpanded = expandedTaskId == task.documentId
+                            )
+                        },
+
+                        colors = ChipDefaults.chipColors(
+                            backgroundColor = Color.White,
+                            contentColor = Color(0xFF1F1F24)
+                        ),
+
+                        onClick = {
+                            expandedTaskId =
+                                if (expandedTaskId == task.documentId) {
+                                    null
+                                } else {
+                                    task.documentId
+                                }
+                        }
+                    )
+                }
+
+                if (expandedTaskId == task.documentId) {
+
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 3.dp)
+                                .background(
+                                    Color.White,
+                                    RoundedCornerShape(18.dp)
+                                )
+                                .padding(10.dp)
+                        ) {
+
+                            Text(
+                                text = task.descripcion.ifBlank { "Sin descripciÃ³n" },
+                                color = Color(0xFF66646D),
+                                fontSize = 11.sp
+                            )
+
+                            Text(
+                                text = "Fecha: ${task.fecha.ifBlank { "Sin fecha" }}",
+                                color = Color(0xFF66646D),
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(top = 3.dp)
+                            )
+
+                            Text(
+                                text = "Hora: ${task.hora.ifBlank { "Sin hora" }}",
+                                color = Color(0xFF66646D),
+                                fontSize = 10.sp
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 7.dp)
+                                    .background(
+                                        MaterialTheme.colors.primary,
+                                        RoundedCornerShape(16.dp)
+                                    )
+                                    .clickable {
+                                        service.markTaskAsCompleted(
+                                            task = task,
+                                            onSuccess = {
+                                                expandedTaskId = null
+                                                feedbackMessage = "Tarea completada"
+                                            },
+                                            onFailure = {
+                                                feedbackMessage = "Error al completar"
+                                            }
+                                        )
+                                    }
+                                    .padding(vertical = 7.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Completar",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 5.dp)
+                                    .background(
+                                        Color(0xFFFFE8EE),
+                                        RoundedCornerShape(16.dp)
+                                    )
+                                    .clickable {
+                                        service.deleteTask(
+                                            task = task,
+                                            onSuccess = {
+                                                expandedTaskId = null
+                                                feedbackMessage = "Tarea eliminada"
+                                            },
+                                            onFailure = {
+                                                feedbackMessage = "Error al eliminar"
+                                            }
+                                        )
+                                    }
+                                    .padding(vertical = 7.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Eliminar",
+                                    color = Color(0xFFD32F2F),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 7.dp)
+                    .background(
+                        MaterialTheme.colors.primary,
+                        RoundedCornerShape(18.dp)
+                    )
+                    .clickable {
+                        feedbackMessage = "Nueva tarea: prÃ³ximamente"
+                    }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "+ Nueva tarea",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskChipSubtitle(
+    task: Task,
+    isExpanded: Boolean
+) {
+
+    val time = task.hora.ifBlank { "Sin hora" }
+
+    val action =
+        if (isExpanded) "Ocultar" else "Ver detalles"
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Box(
+            modifier = Modifier
+                .background(
+                    Color(0xFFEDE7FF),
+                    RoundedCornerShape(10.dp)
+                )
+                .padding(horizontal = 6.dp, vertical = 1.dp)
+        ) {
+            Text(
+                text = time,
+                color = MaterialTheme.colors.primary,
+                fontSize = 10.sp
+            )
+        }
+
+        Box(modifier = Modifier.width(5.dp))
+
+        Text(
+            text = action,
+            color = Color(0xFF66646D),
+            fontSize = 10.sp
+        )
+    }
+}
+

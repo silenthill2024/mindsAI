@@ -1,3 +1,35 @@
+﻿================ BLOG MODELS ================
+package com.example.proyectodesdisint.model
+
+data class BlogPost(
+    var id: String = "",
+    val titulo: String = "",
+    val contenido: String = "",
+    val fecha: Long = System.currentTimeMillis(),
+    val autor: String = "Usuario MindsAI",
+    val autorID: String = ""
+)
+
+data class BlogReply(
+    var id: String = "",
+    val texto: String = "",
+    val autor: String = "MindsAI Assistant",
+    val fecha: Long = System.currentTimeMillis(),
+    val autorID: String = ""
+)
+
+
+================ USER MODEL =================
+package com.example.proyectodesdisint.model
+
+data class User(
+    val uid: String = "",
+    val nombre: String = "",
+    val email: String = ""
+)
+
+
+============= BLOG FIREBASE SCREEN ==========
 package com.example.proyectodesdisint.ui
 
 import androidx.compose.foundation.background
@@ -13,7 +45,6 @@ import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -22,8 +53,6 @@ import androidx.navigation.NavController
 import com.example.proyectodesdisint.data.FirebaseService
 import com.example.proyectodesdisint.model.BlogPost
 import com.example.proyectodesdisint.model.BlogReply
-import com.example.proyectodesdisint.streaming.WearSyncManager
-import org.json.JSONObject
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
@@ -31,8 +60,6 @@ import java.util.*
 @Composable
 fun BlogFirebaseScreen(navController: NavController) {
     val service = remember { FirebaseService() }
-    val context = LocalContext.current
-    val wearSyncManager = remember { WearSyncManager(context) }
     var blogs by remember { mutableStateOf<List<BlogPost>?>(null) }
     var showDialog by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf("") }
@@ -72,7 +99,7 @@ fun BlogFirebaseScreen(navController: NavController) {
                 }
                 blogs!!.isEmpty() -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No hay publicaciones aÃƒÂºn. Ã‚Â¡SÃƒÂ© el primero!", color = Color.Gray)
+                        Text("No hay publicaciones aÃºn. Â¡SÃ© el primero!", color = Color.Gray)
                     }
                 }
                 else -> {
@@ -97,11 +124,11 @@ fun BlogFirebaseScreen(navController: NavController) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Nueva PublicaciÃƒÂ³n") },
+            title = { Text("Nueva PublicaciÃ³n") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("TÃƒÂ­tulo") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Ã‚Â¿QuÃƒÂ© quieres compartir?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("TÃ­tulo") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Â¿QuÃ© quieres compartir?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                 }
             },
             confirmButton = {
@@ -151,7 +178,7 @@ fun BlogFirebaseItemView(blog: BlogPost, service: FirebaseService, currentUserNa
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    " Ã¢â‚¬Â¢ " + SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(blog.fecha)),
+                    " â€¢ " + SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(blog.fecha)),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray
                 )
@@ -207,3 +234,85 @@ fun BlogFirebaseItemView(blog: BlogPost, service: FirebaseService, currentUserNa
         }
     }
 }
+
+
+============= FIREBASE SERVICE ==============
+package com.example.proyectodesdisint.data
+
+import com.google.firebase.firestore.FirebaseFirestore
+import com.example.proyectodesdisint.model.Task
+
+class FirebaseService {
+
+    private val db = FirebaseFirestore.getInstance()
+    private val tasksCollection = db.collection("tasks")
+
+    fun addTask(
+        task: Task,
+        onSuccess: (Task) -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val docRef = tasksCollection.document()
+        val taskWithId = task.copy(documentId = docRef.id)
+
+        docRef.set(taskWithId)
+            .addOnSuccessListener {
+                onSuccess(taskWithId)
+            }
+            .addOnFailureListener { error ->
+                onFailure(error)
+            }
+    }
+
+    fun listenTasks(onResult: (List<Task>) -> Unit) {
+        tasksCollection.addSnapshotListener { snapshot, _ ->
+            val tasks = snapshot?.mapNotNull { doc ->
+                val task = doc.toObject(Task::class.java)
+                task.documentId = doc.id
+                task
+            } ?: emptyList()
+
+            onResult(tasks)
+        }
+    }
+
+    fun updateTask(
+        task: Task,
+        onSuccess: (Task) -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        tasksCollection.document(task.documentId)
+            .update(
+                mapOf(
+                    "titulo" to task.titulo,
+                    "descripcion" to task.descripcion,
+                    "fecha" to task.fecha,
+                    "hora" to task.hora,
+                    "completado" to task.completado,
+                    "completionTime" to task.completionTime
+                )
+            )
+            .addOnSuccessListener {
+                onSuccess(task)
+            }
+            .addOnFailureListener { error ->
+                onFailure(error)
+            }
+    }
+
+    fun deleteTask(
+        documentId: String,
+        onSuccess: (String) -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        tasksCollection.document(documentId)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess(documentId)
+            }
+            .addOnFailureListener { error ->
+                onFailure(error)
+            }
+    }
+}
+

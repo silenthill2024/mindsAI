@@ -1,0 +1,770 @@
+﻿package com.example.proyectdeswear.presentation
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.wear.compose.material.CircularProgressIndicator
+import androidx.wear.compose.material.Text
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+
+private val Background = Color(0xFF050507)
+private val Surface = Color(0xFF1B1A21)
+private val SurfaceSecondary = Color(0xFF2A2831)
+
+private val Cyan = Color(0xFF66D9E8)
+private val Lavender = Color(0xFFA78BFA)
+private val Green = Color(0xFF4ADE80)
+private val Orange = Color(0xFFFFA94D)
+private val Red = Color(0xFFFF5C75)
+private val SecondaryText = Color(0xFFA8A5AF)
+
+private enum class HomeCard {
+    PROGRESS,
+    NEXT_TASK,
+    ALERTS,
+    RECOMMENDATION
+}
+
+@Composable
+fun AcademicHomeCarousel(
+    tasks: List<Task>,
+    notificationCount: Int,
+    onNotificationsClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val pendingTasks = tasks.filter { !it.completado }
+
+    val overdueTasks = pendingTasks.filter {
+        dateStatus(it.fecha) == DateStatus.OVERDUE
+    }
+
+    val todayTasks = pendingTasks.filter {
+        dateStatus(it.fecha) == DateStatus.TODAY
+    }
+
+    val upcomingTasks = pendingTasks.filter {
+        dateStatus(it.fecha) == DateStatus.UPCOMING
+    }
+
+    val orderedTasks =
+        overdueTasks + todayTasks + upcomingTasks
+
+    val nextTask = orderedTasks.firstOrNull()
+
+    val totalTasks = tasks.size
+    val completedTasks = tasks.count { it.completado }
+
+    val progress =
+        if (totalTasks == 0) {
+            0f
+        } else {
+            completedTasks.toFloat() / totalTasks.toFloat()
+        }
+
+    val cards = HomeCard.entries
+
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { cards.size }
+    )
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Background)
+            .padding(
+                top = 8.dp,
+                bottom = 10.dp
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        ClockAndNotificationHeader(
+            notificationCount = notificationCount,
+            onNotificationsClick = onNotificationsClick
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = 8.dp
+        ) { page ->
+
+            when (cards[page]) {
+                HomeCard.PROGRESS -> {
+                    ProgressCarouselCard(
+                        progress = progress,
+                        completed = completedTasks,
+                        pending = pendingTasks.size
+                    )
+                }
+
+                HomeCard.NEXT_TASK -> {
+                    NextTaskCarouselCard(
+                        task = nextTask
+                    )
+                }
+
+                HomeCard.ALERTS -> {
+                    AlertsCarouselCard(
+                        overdue = overdueTasks.size,
+                        today = todayTasks.size,
+                        upcoming = upcomingTasks.size
+                    )
+                }
+
+                HomeCard.RECOMMENDATION -> {
+                    RecommendationCarouselCard(
+                        task = nextTask
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        PaginationDots(
+            total = cards.size,
+            selected = pagerState.currentPage
+        )
+
+        Text(
+            text = "${pagerState.currentPage + 1} / ${cards.size}",
+            color = SecondaryText,
+            fontSize = 8.sp,
+            modifier = Modifier.padding(top = 3.dp)
+        )
+    }
+}
+
+@Composable
+private fun ClockAndNotificationHeader(
+    notificationCount: Int,
+    onNotificationsClick: () -> Unit
+) {
+    var currentTime by remember {
+        mutableStateOf(Date())
+    }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentTime = Date()
+            delay(30_000)
+        }
+    }
+
+    val timeFormatter = remember {
+        SimpleDateFormat(
+            "HH:mm",
+            Locale.getDefault()
+        )
+    }
+
+    val dateFormatter = remember {
+        SimpleDateFormat(
+            "EEE, d MMM",
+            Locale.getDefault()
+        )
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 22.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(
+                text = timeFormatter.format(currentTime),
+                color = Color.White,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = dateFormatter
+                    .format(currentTime)
+                    .replaceFirstChar {
+                        if (it.isLowerCase()) {
+                            it.titlecase(Locale.getDefault())
+                        } else {
+                            it.toString()
+                        }
+                    },
+                color = SecondaryText,
+                fontSize = 9.sp
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .background(
+                    Surface,
+                    CircleShape
+                )
+                .clickable(
+                    onClick = onNotificationsClick
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "🔔",
+                fontSize = 21.sp
+            )
+
+            if (notificationCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .size(17.dp)
+                        .align(Alignment.TopEnd)
+                        .background(
+                            Red,
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = notificationCount
+                            .coerceAtMost(9)
+                            .toString(),
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProgressCarouselCard(
+    progress: Float,
+    completed: Int,
+    pending: Int
+) {
+    CarouselCard {
+        Text(
+            text = "PROGRESO DE HOY",
+            color = Cyan,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        Box(
+            modifier = Modifier.size(102.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                progress = progress,
+                modifier = Modifier.size(102.dp),
+                strokeWidth = 8.dp,
+                indicatorColor = Cyan,
+                trackColor = SurfaceSecondary
+            )
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "${(progress * 100).toInt()}%",
+                    color = Color.White,
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "completado",
+                    color = SecondaryText,
+                    fontSize = 8.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "$completed terminadas · $pending pendientes",
+            color = SecondaryText,
+            fontSize = 9.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun NextTaskCarouselCard(
+    task: Task?
+) {
+    CarouselCard {
+        Text(
+            text = "PRÓXIMA TAREA",
+            color = Lavender,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(13.dp))
+
+        if (task == null) {
+            Text(
+                text = "Todo listo",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "No tienes tareas pendientes",
+                color = SecondaryText,
+                fontSize = 9.sp,
+                textAlign = TextAlign.Center
+            )
+        } else {
+            Text(
+                text = task.titulo.ifBlank {
+                    "Tarea sin título"
+                },
+                color = Color.White,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            Text(
+                text = task.descripcion.ifBlank {
+                    "Sin descripción"
+                },
+                color = SecondaryText,
+                fontSize = 9.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.SpaceEvenly
+            ) {
+                SmallInfo(
+                    label = "Fecha",
+                    value = task.fecha.ifBlank {
+                        "Sin fecha"
+                    }
+                )
+
+                SmallInfo(
+                    label = "Hora",
+                    value = task.hora.ifBlank {
+                        "Sin hora"
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlertsCarouselCard(
+    overdue: Int,
+    today: Int,
+    upcoming: Int
+) {
+    CarouselCard {
+        Text(
+            text = "ALERTAS",
+            color = Orange,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement =
+                Arrangement.SpaceEvenly
+        ) {
+            AlertValue(
+                value = overdue,
+                label = "Vencidas",
+                color = Red
+            )
+
+            AlertValue(
+                value = today,
+                label = "Hoy",
+                color = Orange
+            )
+
+            AlertValue(
+                value = upcoming,
+                label = "Próximas",
+                color = Green
+            )
+        }
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Text(
+            text = when {
+                overdue > 0 ->
+                    "Tienes tareas atrasadas"
+
+                today > 0 ->
+                    "Tienes actividades para hoy"
+
+                upcoming > 0 ->
+                    "Tu agenda está organizada"
+
+                else ->
+                    "No tienes alertas"
+            },
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun RecommendationCarouselCard(
+    task: Task?
+) {
+    CarouselCard {
+        Text(
+            text = "MINDSAI RECOMIENDA",
+            color = Lavender,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(13.dp))
+
+        Box(
+            modifier = Modifier
+                .size(46.dp)
+                .background(
+                    Lavender.copy(alpha = 0.18f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "AI",
+                color = Lavender,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        if (task == null) {
+            Text(
+                text = "Descansa y prepara tu siguiente meta",
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        } else {
+            Text(
+                text = "Empieza por:",
+                color = SecondaryText,
+                fontSize = 9.sp
+            )
+
+            Text(
+                text = task.titulo.ifBlank {
+                    "Tu próxima actividad"
+                },
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            Text(
+                text = recommendationMessage(task),
+                color = Cyan,
+                fontSize = 9.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun CarouselCard(
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp)
+            .height(205.dp)
+            .background(
+                Surface,
+                RoundedCornerShape(28.dp)
+            )
+            .padding(
+                horizontal = 15.dp,
+                vertical = 14.dp
+            ),
+        horizontalAlignment =
+            Alignment.CenterHorizontally,
+        verticalArrangement =
+            Arrangement.Center,
+        content = content
+    )
+}
+
+@Composable
+private fun SmallInfo(
+    label: String,
+    value: String
+) {
+    Column(
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = label,
+            color = SecondaryText,
+            fontSize = 8.sp
+        )
+
+        Text(
+            text = value,
+            color = Color.White,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun AlertValue(
+    value: Int,
+    label: String,
+    color: Color
+) {
+    Column(
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(43.dp)
+                .background(
+                    color.copy(alpha = 0.16f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = value.toString(),
+                color = color,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Text(
+            text = label,
+            color = SecondaryText,
+            fontSize = 8.sp,
+            modifier = Modifier.padding(top = 3.dp)
+        )
+    }
+}
+
+@Composable
+private fun PaginationDots(
+    total: Int,
+    selected: Int
+) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(total) { index ->
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 3.dp)
+                    .size(
+                        if (index == selected) {
+                            8.dp
+                        } else {
+                            6.dp
+                        }
+                    )
+                    .background(
+                        color = if (index == selected) {
+                            Cyan
+                        } else {
+                            SurfaceSecondary
+                        },
+                        shape = CircleShape
+                    )
+            )
+        }
+    }
+}
+
+private enum class DateStatus {
+    OVERDUE,
+    TODAY,
+    UPCOMING,
+    UNKNOWN
+}
+
+private fun dateStatus(
+    value: String
+): DateStatus {
+    val taskDate = parseDate(value)
+        ?: return DateStatus.UNKNOWN
+
+    val today = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.time
+
+    return when {
+        taskDate.before(today) ->
+            DateStatus.OVERDUE
+
+        isSameDay(taskDate, today) ->
+            DateStatus.TODAY
+
+        else ->
+            DateStatus.UPCOMING
+    }
+}
+
+private fun parseDate(
+    value: String
+): Date? {
+    val normalized = value.trim().take(10)
+
+    if (normalized.isBlank()) {
+        return null
+    }
+
+    val patterns = listOf(
+        "yyyy-MM-dd",
+        "dd/MM/yyyy",
+        "dd-MM-yyyy"
+    )
+
+    patterns.forEach { pattern ->
+        try {
+            val formatter = SimpleDateFormat(
+                pattern,
+                Locale.getDefault()
+            )
+
+            formatter.isLenient = false
+
+            val parsed = formatter.parse(normalized)
+
+            if (parsed != null) {
+                return Calendar.getInstance().apply {
+                    time = parsed
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.time
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    return null
+}
+
+private fun isSameDay(
+    first: Date,
+    second: Date
+): Boolean {
+    val firstCalendar = Calendar.getInstance().apply {
+        time = first
+    }
+
+    val secondCalendar = Calendar.getInstance().apply {
+        time = second
+    }
+
+    return firstCalendar.get(Calendar.YEAR) ==
+        secondCalendar.get(Calendar.YEAR) &&
+        firstCalendar.get(Calendar.DAY_OF_YEAR) ==
+        secondCalendar.get(Calendar.DAY_OF_YEAR)
+}
+
+private fun recommendationMessage(
+    task: Task
+): String {
+    return when (dateStatus(task.fecha)) {
+        DateStatus.OVERDUE ->
+            "Está vencida y requiere atención"
+
+        DateStatus.TODAY ->
+            "Debe completarse hoy"
+
+        DateStatus.UPCOMING ->
+            "Es la siguiente en tu agenda"
+
+        DateStatus.UNKNOWN ->
+            "Ayudará a reducir tus pendientes"
+    }
+}

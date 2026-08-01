@@ -1,32 +1,38 @@
-package com.example.proyectodesdisint.ui
+﻿package com.example.proyectodesdisint.ui
 
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Psychology
 
 @Composable
 fun BottomBar(navController: NavController) {
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.primary
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
 
         NavigationBarItem(
             selected = currentRoute == "home",
-            onClick = { 
+            onClick = {
                 if (currentRoute != "home") {
                     navController.navigate("home") {
-                        popUpTo("home") { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             },
@@ -36,61 +42,82 @@ fun BottomBar(navController: NavController) {
                     contentDescription = "Inicio"
                 )
             },
-            label = { Text("Home") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                indicatorColor = MaterialTheme.colorScheme.primary
-            )
+            label = {
+                Text("Inicio")
+            },
+            colors = bottomItemColors()
         )
 
         NavigationBarItem(
             selected = currentRoute == "calendar",
-            onClick = { 
+            onClick = {
                 if (currentRoute != "calendar") {
-                    navController.navigate("calendar") 
+                    navController.navigate("calendar") {
+                        launchSingleTop = true
+                    }
                 }
             },
             icon = {
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = "Calendario"
+                    contentDescription = "Agenda"
                 )
             },
-            label = { Text("Calendar") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                indicatorColor = MaterialTheme.colorScheme.primary
-            )
+            label = {
+                Text("Agenda")
+            },
+            colors = bottomItemColors()
         )
 
         NavigationBarItem(
             selected = currentRoute == "ai",
-            onClick = { 
+            onClick = {
                 if (currentRoute != "ai") {
-                    navController.navigate("ai") 
+                    navController.navigate("ai") {
+                        launchSingleTop = true
+                    }
                 }
             },
             icon = {
                 Icon(
                     imageVector = Icons.Default.Psychology,
-                    contentDescription = "IA"
+                    contentDescription = "MindsAI"
                 )
             },
-            label = { Text("MindsAI") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                indicatorColor = MaterialTheme.colorScheme.primary
-            )
+            label = {
+                Text("MindsAI")
+            },
+            colors = bottomItemColors()
+        )
+
+        NavigationBarItem(
+            selected = currentRoute == "blog",
+            onClick = {
+                if (currentRoute != "blog") {
+                    navController.navigate("blog") {
+                        launchSingleTop = true
+                    }
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Forum,
+                    contentDescription = "Comunidad"
+                )
+            },
+            label = {
+                Text("Comunidad")
+            },
+            colors = bottomItemColors()
         )
 
         NavigationBarItem(
             selected = currentRoute == "profile",
-            onClick = { 
+            onClick = {
                 if (currentRoute != "profile") {
-                    navController.navigate("profile") 
+                    navController.navigate("profile") {
+                        launchSingleTop = true
+                    }
                 }
             },
             icon = {
@@ -99,12 +126,18 @@ fun BottomBar(navController: NavController) {
                     contentDescription = "Perfil"
                 )
             },
-            label = { Text("Profile") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                indicatorColor = MaterialTheme.colorScheme.primary
-            )
+            label = {
+                Text("Perfil")
+            },
+            colors = bottomItemColors()
         )
     }
 }
+
+@Composable
+private fun bottomItemColors() =
+    NavigationBarItemDefaults.colors(
+        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+        selectedTextColor = MaterialTheme.colorScheme.primary,
+        indicatorColor = MaterialTheme.colorScheme.primary
+    )

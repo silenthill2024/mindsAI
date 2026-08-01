@@ -1,4 +1,10 @@
-﻿package com.example.proyectdeswear.presentation
+package com.example.proyectdeswear.presentation
+
+import com.example.proyectdeswear.presentation.notificationsv3.NotificationCenterV3
+
+import com.example.proyectdeswear.presentation.homepro.MindsAIProfessionalHome
+
+import com.example.proyectdeswear.presentation.homev2.MindsAIHomeV2
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -37,18 +43,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
-import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import com.example.proyectdeswear.presentation.theme.ProyectoDesDisIntTheme
 import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
-private val DashboardBackground = Color(0xFF08080C)
-private val CardBackground = Color(0xFF1B1A21)
-private val Purple = Color(0xFF9A5CFF)
-private val Blue = Color(0xFF45B7FF)
-private val Turquoise = Color(0xFF2AD6C4)
-private val SecondaryText = Color(0xFFB8B5C2)
+private val Background = Color(0xFF08080D)
+private val Surface = Color(0xFF191820)
+private val SurfaceLight = Color(0xFF25232D)
+
+private val Purple = Color(0xFF9C5CFF)
+private val Blue = Color(0xFF45B8FF)
+private val Turquoise = Color(0xFF2ED9C3)
+
+private val Danger = Color(0xFFFF526D)
+private val Warning = Color(0xFFFFA940)
+private val Success = Color(0xFF36D399)
+private val SecondaryText = Color(0xFFB9B5C4)
+
+private enum class WatchScreen {
+    DASHBOARD,
+    NOTIFICATIONS
+}
+
+private enum class TaskStatus {
+    OVERDUE,
+    TODAY,
+    UPCOMING,
+    NO_DATE
+}
 
 class MainActivity : ComponentActivity() {
 
@@ -57,20 +84,34 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ProyectoDesDisIntTheme {
-                WearApp()
+                MindsAIWearApp()
             }
         }
     }
 }
 
 @Composable
-fun WearApp() {
+private fun MindsAIWearApp() {
 
-    var tasks by remember { mutableStateOf(emptyList<Task>()) }
-    var expandedTaskId by remember { mutableStateOf<String?>(null) }
-    var feedbackMessage by remember { mutableStateOf<String?>(null) }
+    var screen by remember {
+        mutableStateOf(WatchScreen.DASHBOARD)
+    }
 
-    val service = remember { FirebaseServiceWear() }
+    var tasks by remember {
+        mutableStateOf(emptyList<Task>())
+    }
+
+    var expandedTaskId by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var feedbackMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    val service = remember {
+        FirebaseServiceWear()
+    }
 
     LaunchedEffect(Unit) {
         service.listenTasks { updatedTasks ->
@@ -78,7 +119,9 @@ fun WearApp() {
 
             if (
                 expandedTaskId != null &&
-                updatedTasks.none { it.documentId == expandedTaskId }
+                updatedTasks.none {
+                    it.documentId == expandedTaskId
+                }
             ) {
                 expandedTaskId = null
             }
@@ -92,143 +135,155 @@ fun WearApp() {
         }
     }
 
-    val totalTasks = tasks.size
-    val completedTasks = tasks.count { it.completado }
-
-    val generalProgress =
-        if (totalTasks == 0) 0f
-        else completedTasks.toFloat() / totalTasks.toFloat()
-
-    /*
-     * Por ahora los tres indicadores se calculan a partir de las tareas.
-     * Después pueden conectarse a categorías reales.
-     */
-    val classProgress = generalProgress
-    val researchProgress = (generalProgress * 0.82f).coerceIn(0f, 1f)
-    val writingProgress = (generalProgress * 0.68f).coerceIn(0f, 1f)
-
-    ScalingLazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DashboardBackground),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        item {
-            HeaderSection()
-        }
-
-        feedbackMessage?.let { message ->
-            item {
-                FeedbackCard(message)
-            }
-        }
-
-        item {
-            ProgressDashboard(
-                generalProgress = generalProgress,
-                classProgress = classProgress,
-                researchProgress = researchProgress,
-                writingProgress = writingProgress
-            )
-        }
-
-        item {
-            ProgressLegend(
-                classProgress = classProgress,
-                researchProgress = researchProgress,
-                writingProgress = writingProgress
-            )
-        }
-
-        item {
-            Text(
-                text = "Tareas de hoy",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-            )
-        }
-
-        if (tasks.isEmpty()) {
-            item {
-                EmptyTasksCard()
-            }
-        } else {
-            tasks.forEach { task ->
-
-                item {
-                    TaskDashboardChip(
+    when (screen) {
+        WatchScreen.DASHBOARD -> {
+            DashboardScreen(
+                tasks = tasks,
+                expandedTaskId = expandedTaskId,
+                feedbackMessage = feedbackMessage,
+                onNotificationsClick = {
+                    screen = WatchScreen.NOTIFICATIONS
+                },
+                onTaskClick = { task ->
+                    expandedTaskId =
+                        if (expandedTaskId == task.documentId) {
+                            null
+                        } else {
+                            task.documentId
+                        }
+                },
+                onComplete = { task ->
+                    service.markTaskAsCompleted(
                         task = task,
-                        isExpanded = expandedTaskId == task.documentId,
-                        onClick = {
-                            expandedTaskId =
-                                if (expandedTaskId == task.documentId) {
-                                    null
-                                } else {
-                                    task.documentId
-                                }
+                        onSuccess = {
+                            expandedTaskId = null
+                            feedbackMessage = "Tarea completada"
+                        },
+                        onFailure = {
+                            feedbackMessage = "No se pudo completar"
+                        }
+                    )
+                },
+                onDelete = { task ->
+                    service.deleteTask(
+                        task = task,
+                        onSuccess = {
+                            expandedTaskId = null
+                            feedbackMessage = "Tarea eliminada"
+                        },
+                        onFailure = {
+                            feedbackMessage = "No se pudo eliminar"
+                        }
+                    )
+                },
+                onVoiceClick = {
+                    feedbackMessage =
+                        "Di: mostrar pendientes"
+                }
+            )
+        }
+
+        WatchScreen.NOTIFICATIONS -> {
+            NotificationsScreen(
+                tasks = tasks,
+                expandedTaskId = expandedTaskId,
+                feedbackMessage = feedbackMessage,
+                onBack = {
+                    expandedTaskId = null
+                    screen = WatchScreen.DASHBOARD
+                },
+                onTaskClick = { task ->
+                    expandedTaskId =
+                        if (expandedTaskId == task.documentId) {
+                            null
+                        } else {
+                            task.documentId
+                        }
+                },
+                onComplete = { task ->
+                    service.markTaskAsCompleted(
+                        task = task,
+                        onSuccess = {
+                            expandedTaskId = null
+                            feedbackMessage = "Tarea completada"
+                        },
+                        onFailure = {
+                            feedbackMessage = "No se pudo completar"
+                        }
+                    )
+                },
+                onDelete = { task ->
+                    service.deleteTask(
+                        task = task,
+                        onSuccess = {
+                            expandedTaskId = null
+                            feedbackMessage = "Tarea eliminada"
+                        },
+                        onFailure = {
+                            feedbackMessage = "No se pudo eliminar"
                         }
                     )
                 }
-
-                if (expandedTaskId == task.documentId) {
-                    item {
-                        TaskActionsCard(
-                            task = task,
-                            onComplete = {
-                                service.markTaskAsCompleted(
-                                    task = task,
-                                    onSuccess = {
-                                        expandedTaskId = null
-                                        feedbackMessage = "Tarea completada"
-                                    },
-                                    onFailure = {
-                                        feedbackMessage = "Error al completar"
-                                    }
-                                )
-                            },
-                            onDelete = {
-                                service.deleteTask(
-                                    task = task,
-                                    onSuccess = {
-                                        expandedTaskId = null
-                                        feedbackMessage = "Tarea eliminada"
-                                    },
-                                    onFailure = {
-                                        feedbackMessage = "Error al eliminar"
-                                    }
-                                )
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            VoiceButton(
-                onClick = {
-                    feedbackMessage = "Dictado próximamente"
-                }
             )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-private fun HeaderSection() {
+private fun DashboardScreen(
+    tasks: List<Task>,
+    expandedTaskId: String?,
+    feedbackMessage: String?,
+    onNotificationsClick: () -> Unit,
+    onTaskClick: (Task) -> Unit,
+    onComplete: (Task) -> Unit,
+    onDelete: (Task) -> Unit,
+    onVoiceClick: () -> Unit
+) {
+    val notificationCount = tasks.count { !it.completado }
+
+    MindsAIProfessionalHome(
+        tasks = tasks,
+        notificationCount = notificationCount,
+        onNotificationsClick = onNotificationsClick,
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@Composable
+private fun NotificationsScreen(
+    tasks: List<Task>,
+    expandedTaskId: String?,
+    feedbackMessage: String?,
+    onBack: () -> Unit,
+    onTaskClick: (Task) -> Unit,
+    onComplete: (Task) -> Unit,
+    onDelete: (Task) -> Unit
+) {
+    NotificationCenterV3(
+        tasks = tasks,
+        onBack = onBack,
+        onComplete = onComplete,
+        onDelete = onDelete,
+        modifier = Modifier.fillMaxSize()
+    )
+}
+@Composable
+private fun PremiumHeader(
+    notificationCount: Int,
+    onNotificationsClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .padding(
+                horizontal = 18.dp,
+                vertical = 7.dp
+            ),
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+        verticalAlignment =
+            Alignment.CenterVertically
     ) {
         Column {
             Text(
@@ -238,106 +293,161 @@ private fun HeaderSection() {
                 fontWeight = FontWeight.ExtraBold
             )
 
-            Text(
-                text = "Panel académico",
-                color = SecondaryText,
-                fontSize = 10.sp
-            )
+            Row(
+                verticalAlignment =
+                    Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .background(
+                            Success,
+                            CircleShape
+                        )
+                )
+
+                Spacer(
+                    modifier = Modifier.size(4.dp)
+                )
+
+                Text(
+                    text = "Sincronizado",
+                    color = SecondaryText,
+                    fontSize = 9.sp
+                )
+            }
         }
 
         Box(
             modifier = Modifier
-                .size(32.dp)
-                .background(CardBackground, CircleShape),
+                .size(38.dp)
+                .background(
+                    Surface,
+                    CircleShape
+                )
+                .clickable(
+                    onClick = onNotificationsClick
+                ),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "●",
-                color = Purple,
-                fontSize = 16.sp
+                text = "Aviso",
+                fontSize = 20.sp
             )
+
+            if (notificationCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .size(17.dp)
+                        .align(Alignment.TopEnd)
+                        .background(
+                            Danger,
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = notificationCount
+                            .coerceAtMost(9)
+                            .toString(),
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ProgressDashboard(
-    generalProgress: Float,
-    classProgress: Float,
-    researchProgress: Float,
-    writingProgress: Float
+private fun DailyProgressRing(
+    progress: Float,
+    totalPending: Int,
+    todayPending: Int
 ) {
     Box(
-        modifier = Modifier
-            .size(170.dp)
-            .padding(6.dp),
+        modifier = Modifier.size(155.dp),
         contentAlignment = Alignment.Center
     ) {
         Canvas(
             modifier = Modifier.fillMaxSize()
         ) {
-            val center = Offset(size.width / 2f, size.height / 2f)
+            val center = Offset(
+                size.width / 2f,
+                size.height / 2f
+            )
 
             drawProgressRing(
-                progress = classProgress,
+                progress = progress,
                 color = Purple,
-                radius = size.minDimension * 0.46f,
-                strokeWidth = 11f,
+                radius = size.minDimension * 0.43f,
+                strokeWidth = 13f,
                 center = center
             )
 
             drawProgressRing(
-                progress = researchProgress,
+                progress = (
+                    1f - totalPending.coerceAtMost(10) / 10f
+                ).coerceIn(0.08f, 1f),
                 color = Blue,
-                radius = size.minDimension * 0.36f,
-                strokeWidth = 10f,
+                radius = size.minDimension * 0.33f,
+                strokeWidth = 9f,
                 center = center
             )
 
             drawProgressRing(
-                progress = writingProgress,
+                progress = (
+                    1f - todayPending.coerceAtMost(8) / 8f
+                ).coerceIn(0.08f, 1f),
                 color = Turquoise,
-                radius = size.minDimension * 0.26f,
-                strokeWidth = 9f,
+                radius = size.minDimension * 0.24f,
+                strokeWidth = 8f,
                 center = center
             )
         }
 
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment =
+                Alignment.CenterHorizontally
         ) {
             Text(
-                text = "${(generalProgress * 100).toInt()}%",
+                text = "${(progress * 100).toInt()}%",
                 color = Color.White,
-                fontSize = 30.sp,
+                fontSize = 27.sp,
                 fontWeight = FontWeight.ExtraBold
             )
 
             Text(
-                text = "Progreso",
+                text = "Progreso diario",
                 color = SecondaryText,
-                fontSize = 11.sp
+                fontSize = 9.sp
             )
         }
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawProgressRing(
-    progress: Float,
-    color: Color,
-    radius: Float,
-    strokeWidth: Float,
-    center: Offset
-) {
+private fun androidx.compose.ui.graphics.drawscope.DrawScope
+    .drawProgressRing(
+        progress: Float,
+        color: Color,
+        radius: Float,
+        strokeWidth: Float,
+        center: Offset
+    ) {
+
     val topLeft = Offset(
         center.x - radius,
         center.y - radius
     )
 
-    val arcSize = Size(radius * 2f, radius * 2f)
+    val arcSize = Size(
+        radius * 2f,
+        radius * 2f
+    )
 
     drawArc(
-        color = Color(0xFF29272F),
+        color = SurfaceLight,
         startAngle = -90f,
         sweepAngle = 360f,
         useCenter = false,
@@ -352,7 +462,8 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawProgressRing(
     drawArc(
         color = color,
         startAngle = -90f,
-        sweepAngle = 360f * progress.coerceIn(0f, 1f),
+        sweepAngle =
+            360f * progress.coerceIn(0f, 1f),
         useCenter = false,
         topLeft = topLeft,
         size = arcSize,
@@ -364,108 +475,269 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawProgressRing(
 }
 
 @Composable
-private fun ProgressLegend(
-    classProgress: Float,
-    researchProgress: Float,
-    writingProgress: Float
+private fun DailySummary(
+    overdue: Int,
+    today: Int,
+    upcoming: Int
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+            .padding(horizontal = 16.dp),
+        horizontalArrangement =
+            Arrangement.SpaceEvenly
     ) {
-        ProgressLegendItem(
-            title = "Clases",
-            progress = classProgress,
-            color = Purple
+        SummaryItem(
+            value = overdue,
+            label = "Vencidas",
+            color = Danger
         )
 
-        ProgressLegendItem(
-            title = "Invest.",
-            progress = researchProgress,
-            color = Blue
+        SummaryItem(
+            value = today,
+            label = "Hoy",
+            color = Warning
         )
 
-        ProgressLegendItem(
-            title = "Escritura",
-            progress = writingProgress,
+        SummaryItem(
+            value = upcoming,
+            label = "Proximas",
             color = Turquoise
         )
     }
 }
 
 @Composable
-private fun ProgressLegendItem(
-    title: String,
-    progress: Float,
+private fun SummaryItem(
+    value: Int,
+    label: String,
     color: Color
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment =
+            Alignment.CenterHorizontally
     ) {
         Text(
-            text = "${(progress * 100).toInt()}%",
+            text = value.toString(),
             color = color,
-            fontSize = 12.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.Bold
         )
 
         Text(
-            text = title,
+            text = label,
             color = SecondaryText,
-            fontSize = 9.sp
+            fontSize = 8.sp
         )
     }
 }
 
 @Composable
-private fun TaskDashboardChip(
+private fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        modifier = Modifier.padding(
+            top = 9.dp,
+            bottom = 4.dp
+        ),
+        color = Color.White,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+@Composable
+private fun NextTaskCard(
+    task: Task,
+    onClick: () -> Unit
+) {
+    val status = taskStatus(task)
+    val statusColor = taskStatusColor(status)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp)
+            .background(
+                Surface,
+                RoundedCornerShape(22.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(13.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement =
+                Arrangement.SpaceBetween,
+            verticalAlignment =
+                Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = taskStatusLabel(status),
+                    color = statusColor,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = task.titulo.ifBlank {
+                        "Tarea sin titulo"
+                    },
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(11.dp)
+                    .background(
+                        statusColor,
+                        CircleShape
+                    )
+            )
+        }
+
+        Spacer(
+            modifier = Modifier.height(6.dp)
+        )
+
+        Text(
+            text = formatTaskSchedule(task),
+            color = SecondaryText,
+            fontSize = 10.sp
+        )
+    }
+}
+
+@Composable
+private fun CompactTaskChip(
     task: Task,
     isExpanded: Boolean,
     onClick: () -> Unit
 ) {
+    val status = taskStatus(task)
+    val statusColor = taskStatusColor(status)
+
     Chip(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 9.dp, vertical = 2.dp),
+            .padding(
+                horizontal = 9.dp,
+                vertical = 2.dp
+            ),
         label = {
             Text(
-                text = task.titulo,
+                text = task.titulo.ifBlank {
+                    "Tarea sin titulo"
+                },
                 color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
             )
         },
         secondaryLabel = {
             Text(
-                text = buildString {
-                    append(task.hora.ifBlank { "Sin hora" })
-                    append(" · ")
-                    append(
-                        if (task.completado) {
-                            "Completada"
-                        } else if (isExpanded) {
-                            "Ocultar"
-                        } else {
-                            "Ver detalles"
-                        }
-                    )
-                },
-                color = if (task.completado) {
-                    Turquoise
+                text = if (isExpanded) {
+                    "Ocultar acciones"
                 } else {
-                    SecondaryText
+                    formatTaskSchedule(task)
                 },
-                fontSize = 10.sp
+                color = statusColor,
+                fontSize = 9.sp,
+                maxLines = 1
             )
         },
         colors = ChipDefaults.chipColors(
-            backgroundColor = CardBackground,
+            backgroundColor = Surface,
             contentColor = Color.White
         ),
         onClick = onClick
     )
+}
+
+@Composable
+private fun NotificationTaskCard(
+    task: Task,
+    isExpanded: Boolean,
+    onClick: () -> Unit
+) {
+    val status = taskStatus(task)
+    val statusColor = taskStatusColor(status)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = 12.dp,
+                vertical = 3.dp
+            )
+            .background(
+                Surface,
+                RoundedCornerShape(20.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment =
+            Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(
+                    statusColor.copy(alpha = 0.18f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = when (status) {
+                    TaskStatus.OVERDUE -> "VENCIDA"
+                    TaskStatus.TODAY -> "HOY"
+                    TaskStatus.UPCOMING -> "PROXIMA"
+                    TaskStatus.NO_DATE -> "SIN FECHA"
+                },
+                color = statusColor,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(
+            modifier = Modifier.size(9.dp)
+        )
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = task.titulo.ifBlank {
+                    "Tarea sin titulo"
+                },
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+
+            Text(
+                text = if (isExpanded) {
+                    "Toca nuevamente para cerrar"
+                } else {
+                    "Texto"
+                },
+                color = statusColor,
+                fontSize = 8.sp,
+                maxLines = 1
+            )
+        }
+    }
 }
 
 @Composable
@@ -477,48 +749,44 @@ private fun TaskActionsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 3.dp)
+            .padding(
+                horizontal = 16.dp,
+                vertical = 3.dp
+            )
             .background(
-                CardBackground,
+                SurfaceLight,
                 RoundedCornerShape(20.dp)
             )
             .padding(11.dp)
     ) {
         Text(
             text = task.descripcion.ifBlank {
-                "Sin descripción"
+                "Texto"
             },
             color = SecondaryText,
-            fontSize = 10.sp
-        )
-
-        Text(
-            text = "Fecha: ${task.fecha.ifBlank { "Sin fecha" }}",
-            color = SecondaryText,
             fontSize = 9.sp,
-            modifier = Modifier.padding(top = 4.dp)
+            textAlign = TextAlign.Start
         )
 
-        if (!task.completado) {
-            DashboardActionButton(
-                text = "Completar",
-                backgroundColor = Purple,
-                textColor = Color.White,
-                onClick = onComplete
-            )
-        }
+        ActionButton(
+            text = "Completar",
+            backgroundColor = Purple,
+            textColor = Color.White,
+            onClick = onComplete
+        )
 
-        DashboardActionButton(
+        ActionButton(
             text = "Eliminar",
-            backgroundColor = Color(0xFF3A2028),
-            textColor = Color(0xFFFF778F),
+            backgroundColor =
+                Danger.copy(alpha = 0.17f),
+            textColor = Danger,
             onClick = onDelete
         )
     }
 }
 
 @Composable
-private fun DashboardActionButton(
+private fun ActionButton(
     text: String,
     backgroundColor: Color,
     textColor: Color,
@@ -546,29 +814,65 @@ private fun DashboardActionButton(
 }
 
 @Composable
-private fun EmptyTasksCard() {
+private fun VoiceButton(
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .padding(vertical = 12.dp)
+            .size(72.dp)
+            .background(
+                Purple,
+                CircleShape
+            )
+            .clickable(onClick = onClick),
+        horizontalAlignment =
+            Alignment.CenterHorizontally,
+        verticalArrangement =
+            Arrangement.Center
+    ) {
+        Text(
+            text = "Aviso",
+            fontSize = 23.sp
+        )
+
+        Text(
+            text = "Hablar",
+            color = Color.White,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun EmptyCard(
+    title: String,
+    subtitle: String
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 5.dp)
+            .padding(horizontal = 18.dp)
             .background(
-                CardBackground,
+                Surface,
                 RoundedCornerShape(22.dp)
             )
             .padding(14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment =
+            Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Todo listo",
+            text = title,
             color = Purple,
-            fontSize = 15.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
 
         Text(
-            text = "No hay tareas pendientes",
+            text = subtitle,
             color = SecondaryText,
-            fontSize = 10.sp
+            fontSize = 9.sp
         )
     }
 }
@@ -577,49 +881,136 @@ private fun EmptyTasksCard() {
 private fun FeedbackCard(message: String) {
     Box(
         modifier = Modifier
-            .padding(horizontal = 14.dp, vertical = 3.dp)
+            .padding(
+                horizontal = 15.dp,
+                vertical = 3.dp
+            )
             .background(
-                Color(0xFF302347),
+                Color(0xFF33264A),
                 RoundedCornerShape(14.dp)
             )
-            .padding(horizontal = 11.dp, vertical = 6.dp)
+            .padding(
+                horizontal = 12.dp,
+                vertical = 6.dp
+            )
     ) {
         Text(
             text = message,
             color = Color.White,
-            fontSize = 10.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center
         )
     }
 }
 
-@Composable
-private fun VoiceButton(
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 10.dp)
-            .background(
-                Purple,
-                RoundedCornerShape(24.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "●",
-            color = Color.White,
-            fontSize = 18.sp
-        )
+private fun taskStatus(task: Task): TaskStatus {
+    val date = parseTaskDate(task.fecha)
+        ?: return TaskStatus.NO_DATE
 
-        Text(
-            text = "Dictar hito",
-            color = Color.White,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold
-        )
+    val today = startOfDay(Date())
+
+    return when {
+        date.before(today) -> TaskStatus.OVERDUE
+        isSameDay(date, today) -> TaskStatus.TODAY
+        else -> TaskStatus.UPCOMING
     }
+}
+
+private fun parseTaskDate(value: String): Date? {
+    val normalized = value.trim().take(10)
+
+    if (normalized.isBlank()) {
+        return null
+    }
+
+    val formats = listOf(
+        "yyyy-MM-dd",
+        "dd/MM/yyyy",
+        "dd-MM-yyyy"
+    )
+
+    formats.forEach { pattern ->
+        try {
+            val formatter = SimpleDateFormat(
+                pattern,
+                Locale.getDefault()
+            )
+
+            formatter.isLenient = false
+
+            val parsed = formatter.parse(normalized)
+
+            if (parsed != null) {
+                return startOfDay(parsed)
+            }
+        } catch (_: Exception) {
+            // Se prueba el siguiente formato.
+        }
+    }
+
+    return null
+}
+
+private fun startOfDay(date: Date): Date {
+    return Calendar.getInstance().apply {
+        time = date
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.time
+}
+
+private fun isSameDay(
+    first: Date,
+    second: Date
+): Boolean {
+    val firstCalendar =
+        Calendar.getInstance().apply {
+            time = first
+        }
+
+    val secondCalendar =
+        Calendar.getInstance().apply {
+            time = second
+        }
+
+    return firstCalendar.get(Calendar.YEAR) ==
+        secondCalendar.get(Calendar.YEAR) &&
+        firstCalendar.get(Calendar.DAY_OF_YEAR) ==
+        secondCalendar.get(Calendar.DAY_OF_YEAR)
+}
+
+private fun taskStatusColor(
+    status: TaskStatus
+): Color {
+    return when (status) {
+        TaskStatus.OVERDUE -> Danger
+        TaskStatus.TODAY -> Warning
+        TaskStatus.UPCOMING -> Turquoise
+        TaskStatus.NO_DATE -> SecondaryText
+    }
+}
+
+private fun taskStatusLabel(
+    status: TaskStatus
+): String {
+    return when (status) {
+        TaskStatus.OVERDUE -> "VENCIDA"
+        TaskStatus.TODAY -> "HOY"
+        TaskStatus.UPCOMING -> "PROXIMA"
+        TaskStatus.NO_DATE -> "SIN FECHA"
+    }
+}
+
+private fun formatTaskSchedule(task: Task): String {
+    val date = task.fecha
+        .trim()
+        .ifBlank { "Sin fecha" }
+
+    val time = task.hora
+        .trim()
+        .ifBlank { "Sin hora" }
+
+    return "Texto"
 }
