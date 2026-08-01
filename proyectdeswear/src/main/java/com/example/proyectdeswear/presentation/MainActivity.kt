@@ -1,18 +1,22 @@
-package com.example.proyectdeswear.presentation
+﻿package com.example.proyectdeswear.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,8 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
@@ -34,7 +43,15 @@ import androidx.wear.compose.material.Text
 import com.example.proyectdeswear.presentation.theme.ProyectoDesDisIntTheme
 import kotlinx.coroutines.delay
 
+private val DashboardBackground = Color(0xFF08080C)
+private val CardBackground = Color(0xFF1B1A21)
+private val Purple = Color(0xFF9A5CFF)
+private val Blue = Color(0xFF45B7FF)
+private val Turquoise = Color(0xFF2AD6C4)
+private val SecondaryText = Color(0xFFB8B5C2)
+
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,7 +66,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WearApp() {
 
-    var tasks by remember { mutableStateOf(listOf<Task>()) }
+    var tasks by remember { mutableStateOf(emptyList<Task>()) }
     var expandedTaskId by remember { mutableStateOf<String?>(null) }
     var feedbackMessage by remember { mutableStateOf<String?>(null) }
 
@@ -70,123 +87,81 @@ fun WearApp() {
 
     LaunchedEffect(feedbackMessage) {
         if (feedbackMessage != null) {
-            delay(1600)
+            delay(1800)
             feedbackMessage = null
         }
     }
 
+    val totalTasks = tasks.size
+    val completedTasks = tasks.count { it.completado }
+
+    val generalProgress =
+        if (totalTasks == 0) 0f
+        else completedTasks.toFloat() / totalTasks.toFloat()
+
+    /*
+     * Por ahora los tres indicadores se calculan a partir de las tareas.
+     * Después pueden conectarse a categorías reales.
+     */
+    val classProgress = generalProgress
+    val researchProgress = (generalProgress * 0.82f).coerceIn(0f, 1f)
+    val writingProgress = (generalProgress * 0.68f).coerceIn(0f, 1f)
+
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background),
+            .background(DashboardBackground),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         item {
-            Column(
-                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "MindsAI",
-                    color = MaterialTheme.colors.primary,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Tareas de Hoy",
-                    color = MaterialTheme.colors.onBackground,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+            HeaderSection()
         }
 
         feedbackMessage?.let { message ->
             item {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp, vertical = 3.dp)
-                        .background(
-                            Color(0xFFEDE7FF),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Text(
-                        text = message,
-                        color = MaterialTheme.colors.primary,
-                        fontSize = 11.sp
-                    )
-                }
+                FeedbackCard(message)
             }
         }
 
+        item {
+            ProgressDashboard(
+                generalProgress = generalProgress,
+                classProgress = classProgress,
+                researchProgress = researchProgress,
+                writingProgress = writingProgress
+            )
+        }
+
+        item {
+            ProgressLegend(
+                classProgress = classProgress,
+                researchProgress = researchProgress,
+                writingProgress = writingProgress
+            )
+        }
+
+        item {
+            Text(
+                text = "Tareas de hoy",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+            )
+        }
+
         if (tasks.isEmpty()) {
-
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 18.dp, vertical = 5.dp)
-                        .background(
-                            Color.White,
-                            RoundedCornerShape(22.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 10.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Todo listo",
-                            color = MaterialTheme.colors.primary,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Text(
-                            text = "No hay tareas pendientes",
-                            color = Color(0xFF1F1F24),
-                            fontSize = 12.sp
-                        )
-                    }
-                }
+                EmptyTasksCard()
             }
-
         } else {
-
             tasks.forEach { task ->
 
                 item {
-                    Chip(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 2.dp),
-
-                        label = {
-                            Text(
-                                text = task.titulo,
-                                color = Color(0xFF1F1F24),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        },
-
-                        secondaryLabel = {
-                            TaskChipSubtitle(
-                                task = task,
-                                isExpanded = expandedTaskId == task.documentId
-                            )
-                        },
-
-                        colors = ChipDefaults.chipColors(
-                            backgroundColor = Color.White,
-                            contentColor = Color(0xFF1F1F24)
-                        ),
-
+                    TaskDashboardChip(
+                        task = task,
+                        isExpanded = expandedTaskId == task.documentId,
                         onClick = {
                             expandedTaskId =
                                 if (expandedTaskId == task.documentId) {
@@ -199,167 +174,452 @@ fun WearApp() {
                 }
 
                 if (expandedTaskId == task.documentId) {
-
                     item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 3.dp)
-                                .background(
-                                    Color.White,
-                                    RoundedCornerShape(18.dp)
-                                )
-                                .padding(10.dp)
-                        ) {
-
-                            Text(
-                                text = task.descripcion.ifBlank { "Sin descripción" },
-                                color = Color(0xFF66646D),
-                                fontSize = 11.sp
-                            )
-
-                            Text(
-                                text = "Fecha: ${task.fecha.ifBlank { "Sin fecha" }}",
-                                color = Color(0xFF66646D),
-                                fontSize = 10.sp,
-                                modifier = Modifier.padding(top = 3.dp)
-                            )
-
-                            Text(
-                                text = "Hora: ${task.hora.ifBlank { "Sin hora" }}",
-                                color = Color(0xFF66646D),
-                                fontSize = 10.sp
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 7.dp)
-                                    .background(
-                                        MaterialTheme.colors.primary,
-                                        RoundedCornerShape(16.dp)
-                                    )
-                                    .clickable {
-                                        service.markTaskAsCompleted(
-                                            task = task,
-                                            onSuccess = {
-                                                expandedTaskId = null
-                                                feedbackMessage = "Tarea completada"
-                                            },
-                                            onFailure = {
-                                                feedbackMessage = "Error al completar"
-                                            }
-                                        )
+                        TaskActionsCard(
+                            task = task,
+                            onComplete = {
+                                service.markTaskAsCompleted(
+                                    task = task,
+                                    onSuccess = {
+                                        expandedTaskId = null
+                                        feedbackMessage = "Tarea completada"
+                                    },
+                                    onFailure = {
+                                        feedbackMessage = "Error al completar"
                                     }
-                                    .padding(vertical = 7.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Completar",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            onDelete = {
+                                service.deleteTask(
+                                    task = task,
+                                    onSuccess = {
+                                        expandedTaskId = null
+                                        feedbackMessage = "Tarea eliminada"
+                                    },
+                                    onFailure = {
+                                        feedbackMessage = "Error al eliminar"
+                                    }
                                 )
                             }
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 5.dp)
-                                    .background(
-                                        Color(0xFFFFE8EE),
-                                        RoundedCornerShape(16.dp)
-                                    )
-                                    .clickable {
-                                        service.deleteTask(
-                                            task = task,
-                                            onSuccess = {
-                                                expandedTaskId = null
-                                                feedbackMessage = "Tarea eliminada"
-                                            },
-                                            onFailure = {
-                                                feedbackMessage = "Error al eliminar"
-                                            }
-                                        )
-                                    }
-                                    .padding(vertical = 7.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Eliminar",
-                                    color = Color(0xFFD32F2F),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        )
                     }
                 }
             }
         }
 
         item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 7.dp)
-                    .background(
-                        MaterialTheme.colors.primary,
-                        RoundedCornerShape(18.dp)
-                    )
-                    .clickable {
-                        feedbackMessage = "Nueva tarea: próximamente"
-                    }
-                    .padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "+ Nueva tarea",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            VoiceButton(
+                onClick = {
+                    feedbackMessage = "Dictado próximamente"
+                }
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-private fun TaskChipSubtitle(
-    task: Task,
-    isExpanded: Boolean
-) {
-
-    val time = task.hora.ifBlank { "Sin hora" }
-
-    val action =
-        if (isExpanded) "Ocultar" else "Ver detalles"
-
+private fun HeaderSection() {
     Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        Box(
-            modifier = Modifier
-                .background(
-                    Color(0xFFEDE7FF),
-                    RoundedCornerShape(10.dp)
-                )
-                .padding(horizontal = 6.dp, vertical = 1.dp)
-        ) {
+        Column {
             Text(
-                text = time,
-                color = MaterialTheme.colors.primary,
+                text = "MindsAI",
+                color = Purple,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+
+            Text(
+                text = "Panel académico",
+                color = SecondaryText,
                 fontSize = 10.sp
             )
         }
 
-        Box(modifier = Modifier.width(5.dp))
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(CardBackground, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "●",
+                color = Purple,
+                fontSize = 16.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProgressDashboard(
+    generalProgress: Float,
+    classProgress: Float,
+    researchProgress: Float,
+    writingProgress: Float
+) {
+    Box(
+        modifier = Modifier
+            .size(170.dp)
+            .padding(6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val center = Offset(size.width / 2f, size.height / 2f)
+
+            drawProgressRing(
+                progress = classProgress,
+                color = Purple,
+                radius = size.minDimension * 0.46f,
+                strokeWidth = 11f,
+                center = center
+            )
+
+            drawProgressRing(
+                progress = researchProgress,
+                color = Blue,
+                radius = size.minDimension * 0.36f,
+                strokeWidth = 10f,
+                center = center
+            )
+
+            drawProgressRing(
+                progress = writingProgress,
+                color = Turquoise,
+                radius = size.minDimension * 0.26f,
+                strokeWidth = 9f,
+                center = center
+            )
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "${(generalProgress * 100).toInt()}%",
+                color = Color.White,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+
+            Text(
+                text = "Progreso",
+                color = SecondaryText,
+                fontSize = 11.sp
+            )
+        }
+    }
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawProgressRing(
+    progress: Float,
+    color: Color,
+    radius: Float,
+    strokeWidth: Float,
+    center: Offset
+) {
+    val topLeft = Offset(
+        center.x - radius,
+        center.y - radius
+    )
+
+    val arcSize = Size(radius * 2f, radius * 2f)
+
+    drawArc(
+        color = Color(0xFF29272F),
+        startAngle = -90f,
+        sweepAngle = 360f,
+        useCenter = false,
+        topLeft = topLeft,
+        size = arcSize,
+        style = Stroke(
+            width = strokeWidth,
+            cap = StrokeCap.Round
+        )
+    )
+
+    drawArc(
+        color = color,
+        startAngle = -90f,
+        sweepAngle = 360f * progress.coerceIn(0f, 1f),
+        useCenter = false,
+        topLeft = topLeft,
+        size = arcSize,
+        style = Stroke(
+            width = strokeWidth,
+            cap = StrokeCap.Round
+        )
+    )
+}
+
+@Composable
+private fun ProgressLegend(
+    classProgress: Float,
+    researchProgress: Float,
+    writingProgress: Float
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        ProgressLegendItem(
+            title = "Clases",
+            progress = classProgress,
+            color = Purple
+        )
+
+        ProgressLegendItem(
+            title = "Invest.",
+            progress = researchProgress,
+            color = Blue
+        )
+
+        ProgressLegendItem(
+            title = "Escritura",
+            progress = writingProgress,
+            color = Turquoise
+        )
+    }
+}
+
+@Composable
+private fun ProgressLegendItem(
+    title: String,
+    progress: Float,
+    color: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "${(progress * 100).toInt()}%",
+            color = color,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
 
         Text(
-            text = action,
-            color = Color(0xFF66646D),
+            text = title,
+            color = SecondaryText,
+            fontSize = 9.sp
+        )
+    }
+}
+
+@Composable
+private fun TaskDashboardChip(
+    task: Task,
+    isExpanded: Boolean,
+    onClick: () -> Unit
+) {
+    Chip(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 9.dp, vertical = 2.dp),
+        label = {
+            Text(
+                text = task.titulo,
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        secondaryLabel = {
+            Text(
+                text = buildString {
+                    append(task.hora.ifBlank { "Sin hora" })
+                    append(" · ")
+                    append(
+                        if (task.completado) {
+                            "Completada"
+                        } else if (isExpanded) {
+                            "Ocultar"
+                        } else {
+                            "Ver detalles"
+                        }
+                    )
+                },
+                color = if (task.completado) {
+                    Turquoise
+                } else {
+                    SecondaryText
+                },
+                fontSize = 10.sp
+            )
+        },
+        colors = ChipDefaults.chipColors(
+            backgroundColor = CardBackground,
+            contentColor = Color.White
+        ),
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun TaskActionsCard(
+    task: Task,
+    onComplete: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 3.dp)
+            .background(
+                CardBackground,
+                RoundedCornerShape(20.dp)
+            )
+            .padding(11.dp)
+    ) {
+        Text(
+            text = task.descripcion.ifBlank {
+                "Sin descripción"
+            },
+            color = SecondaryText,
             fontSize = 10.sp
+        )
+
+        Text(
+            text = "Fecha: ${task.fecha.ifBlank { "Sin fecha" }}",
+            color = SecondaryText,
+            fontSize = 9.sp,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+
+        if (!task.completado) {
+            DashboardActionButton(
+                text = "Completar",
+                backgroundColor = Purple,
+                textColor = Color.White,
+                onClick = onComplete
+            )
+        }
+
+        DashboardActionButton(
+            text = "Eliminar",
+            backgroundColor = Color(0xFF3A2028),
+            textColor = Color(0xFFFF778F),
+            onClick = onDelete
+        )
+    }
+}
+
+@Composable
+private fun DashboardActionButton(
+    text: String,
+    backgroundColor: Color,
+    textColor: Color,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp)
+            .background(
+                backgroundColor,
+                RoundedCornerShape(16.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 7.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun EmptyTasksCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 5.dp)
+            .background(
+                CardBackground,
+                RoundedCornerShape(22.dp)
+            )
+            .padding(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Todo listo",
+            color = Purple,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Text(
+            text = "No hay tareas pendientes",
+            color = SecondaryText,
+            fontSize = 10.sp
+        )
+    }
+}
+
+@Composable
+private fun FeedbackCard(message: String) {
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 14.dp, vertical = 3.dp)
+            .background(
+                Color(0xFF302347),
+                RoundedCornerShape(14.dp)
+            )
+            .padding(horizontal = 11.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = message,
+            color = Color.White,
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun VoiceButton(
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 10.dp)
+            .background(
+                Purple,
+                RoundedCornerShape(24.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "●",
+            color = Color.White,
+            fontSize = 18.sp
+        )
+
+        Text(
+            text = "Dictar hito",
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
