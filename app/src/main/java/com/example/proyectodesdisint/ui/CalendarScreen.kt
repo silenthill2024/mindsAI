@@ -12,7 +12,7 @@ import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.proyectodesdisint.viewmodel.HomeViewModelFactory
-import com.example.mindsai.model.Task
+import com.example.proyectodesdisint.model.Task
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -92,14 +92,14 @@ fun CalendarScreen(navController: NavController) {
             }
 
             Spacer(Modifier.height(24.dp))
-            Text("Próximas Tareas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text("PrÃ³ximas Tareas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
         }
 
         if (upcomingTasks.isEmpty()) {
             item {
                 Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                    Text("No hay tareas próximas", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text("No hay tareas prÃ³ximas", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
             }
         } else {
@@ -107,7 +107,7 @@ fun CalendarScreen(navController: NavController) {
             groupedTasks.forEach { (fecha, tasksForDay) ->
                 item {
                     Text(
-                        text = "📅 $fecha",
+                        text = "ðŸ“… $fecha",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(vertical = 8.dp)
@@ -149,8 +149,8 @@ fun CalendarScreen(navController: NavController) {
             title = { Text("Nueva Tarea") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("TÃ­tulo") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("DescripciÃ³n") }, modifier = Modifier.fillMaxWidth())
                     TimePickerField(value = selectedTime, label = "Hora", onValueChange = { selectedTime = it })
                     
                     Text("Prioridad", style = MaterialTheme.typography.labelLarge)

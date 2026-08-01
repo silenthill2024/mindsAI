@@ -1,6 +1,6 @@
 package com.example.proyectodesdisint.data
 
-import com.example.mindsai.model.Task
+import com.example.proyectodesdisint.model.Task
 import java.util.Calendar
 import kotlin.math.exp
 import kotlin.math.roundToInt

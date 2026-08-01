@@ -34,7 +34,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
-import com.example.mindsai.model.Task
+import com.example.proyectodesdisint.model.Task
 import com.example.proyectodesdisint.viewmodel.HomeViewModel
 
 @Composable
@@ -138,7 +138,7 @@ fun HomeScreen(navController: NavController) {
             if (filteredTasks.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillParentMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                        Text("No hay tareas en esta categoría", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        Text("No hay tareas en esta categorÃ­a", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                     }
                 }
             } else {
@@ -175,8 +175,8 @@ fun HomeScreen(navController: NavController) {
             title = { Text(if (selectedTask != null) "Editar Tarea" else "Nueva Tarea") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("TÃ­tulo") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("DescripciÃ³n") }, modifier = Modifier.fillMaxWidth())
                     TimePickerField(value = hora, label = "Hora", onValueChange = { hora = it })
                     Text("Prioridad", style = MaterialTheme.typography.labelLarge)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

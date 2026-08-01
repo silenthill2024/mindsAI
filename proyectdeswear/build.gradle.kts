@@ -61,6 +61,7 @@ dependencies {
 
     // Wearable Support Libraries
     implementation(libs.google.android.support.wearable)
+    implementation(libs.core.ktx)
     compileOnly(libs.google.android.wearable)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
