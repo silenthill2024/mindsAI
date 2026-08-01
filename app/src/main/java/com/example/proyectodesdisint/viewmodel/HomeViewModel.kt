@@ -3,9 +3,9 @@ package com.example.proyectodesdisint.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.example.proyectodesdisint.data.FirebaseService
-import com.example.proyectodesdisint.data.SuggestionEngine
-import com.example.proyectodesdisint.model.Task
-import com.example.proyectodesdisint.streaming.WearSyncManager
+import com.example.mindsai.data.SuggestionEngine
+import com.example.mindsai.model.Task
+import com.example.mindsai.streaming.WearSyncManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

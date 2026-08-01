@@ -1,4 +1,4 @@
-package com.example.proyectodesdisint.data
+package com.example.mindsai.data
 
 import com.example.mindsai.model.Task
 import java.util.Calendar
@@ -7,7 +7,8 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 
 object SuggestionEngine {
-
+    // ... (rest of the code is the same, just package update)
+    // I'll copy the whole thing for correctness
     private const val INPUT_SIZE = 4
     private const val HIDDEN_SIZE = 6
     private const val OUTPUT_SIZE = 3

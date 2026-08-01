@@ -2,7 +2,7 @@ package com.example.proyectodesdisint.data
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
-import com.example.proyectodesdisint.model.Task
+import com.example.mindsai.model.Task
 import kotlinx.coroutines.tasks.await
 
 class TareaRepository {

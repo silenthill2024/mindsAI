@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.proyectodesdisint.navigation.AppNavigation
-import com.example.proyectodesdisint.streaming.StreamingClient
-import com.example.proyectodesdisint.streaming.WearSyncManager
+import com.example.mindsai.streaming.StreamingClient
+import com.example.mindsai.streaming.WearSyncManager
 import com.example.proyectodesdisint.ui.theme.ProyectoDesDisIntTheme
 
 class MainActivity : ComponentActivity() {

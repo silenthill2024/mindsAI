@@ -34,7 +34,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
-import com.example.proyectodesdisint.model.Task
+import com.example.mindsai.model.Task
 import com.example.proyectodesdisint.viewmodel.HomeViewModel
 
 @Composable

@@ -1,0 +1,13 @@
+package com.example.mindsai.model
+
+data class Task(
+    var id: String = "",
+    var titulo: String = "",
+    var descripcion: String = "",
+    var fecha: String = "",
+    var hora: String = "",
+    var completado: Boolean = false,
+    var completionTime: Long? = null,
+    var documentId: String = "",
+    var prioridad: String = "Media" // Alta, Media, Baja
+)

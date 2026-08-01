@@ -3,7 +3,7 @@ package com.example.proyectodesdisint.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectodesdisint.data.TareaRepository
-import com.example.proyectodesdisint.model.Task
+import com.example.mindsai.model.Task
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateListOf
 

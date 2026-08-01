@@ -1,7 +1,7 @@
 package com.example.proyectodesdisint.data
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.proyectodesdisint.model.Task
+import com.example.mindsai.model.Task
 
 class FirebaseService {
 

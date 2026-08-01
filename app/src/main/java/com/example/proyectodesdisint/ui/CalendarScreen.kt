@@ -12,7 +12,7 @@ import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.proyectodesdisint.viewmodel.HomeViewModelFactory
-import com.example.proyectodesdisint.model.Task
+import com.example.mindsai.model.Task
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
