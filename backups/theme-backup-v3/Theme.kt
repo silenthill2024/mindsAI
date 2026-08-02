@@ -1,4 +1,4 @@
-﻿package com.example.proyectodesdisint.ui.theme
+package com.example.proyectodesdisint.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -41,4 +41,3 @@ fun ProyectoDesDisIntTheme(
         content = content
     )
 }
-

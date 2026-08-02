@@ -1,3 +1,11 @@
+import java.util.Properties
+val localProperties = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+
+    if (localFile.exists()) {
+        localFile.inputStream().use { load(it) }
+    }
+}
 plugins {
     id("com.google.devtools.ksp") version "2.2.10-2.0.2"
     alias(libs.plugins.android.application)
@@ -15,7 +23,19 @@ android {
     compileSdk = 37
 
     defaultConfig {
-applicationId = "com.example.proyectodesdisint"
+        val youtubeApiKey =
+            localProperties.getProperty(
+                "YOUTUBE_API_KEY",
+                ""
+            )
+
+        buildConfigField(
+            "String",
+            "YOUTUBE_API_KEY",
+            "\"$youtubeApiKey\""
+        )
+
+        applicationId = "com.example.proyectodesdisint"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

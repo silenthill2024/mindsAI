@@ -7,15 +7,11 @@ plugins {
 }
 
 android {
-    buildFeatures {
-        buildConfig = true
-    }
-
     namespace = "com.example.proyectodesdisint"
     compileSdk = 37
 
     defaultConfig {
-applicationId = "com.example.proyectodesdisint"
+        applicationId = "com.example.proyectodesdisint"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -45,8 +41,9 @@ applicationId = "com.example.proyectodesdisint"
         compose = true
     }
 }
+
 dependencies {
-implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.core.ktx)

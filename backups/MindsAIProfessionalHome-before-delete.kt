@@ -1,4 +1,4 @@
-package com.example.proyectdeswear.presentation.homepro
+﻿package com.example.proyectdeswear.presentation.homepro
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +42,6 @@ fun MindsAIProfessionalHome(
     tasks: List<Task>,
     notificationCount: Int,
     onNotificationsClick: () -> Unit,
-    onDelete: (Task) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val completed = tasks.count { it.completado }
@@ -191,7 +190,6 @@ fun MindsAIProfessionalHome(
                 HomeNavItem.AGENDA -> {
                     AgendaScreen(
                         tasks = tasks,
-                        onDelete = onDelete,
                         modifier = Modifier.weight(1f)
                     )
                 }

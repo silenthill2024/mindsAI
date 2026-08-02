@@ -246,6 +246,7 @@ private fun DashboardScreen(
         tasks = tasks,
         notificationCount = notificationCount,
         onNotificationsClick = onNotificationsClick,
+        onDelete = onDelete,
         modifier = Modifier.fillMaxSize()
     )
 }

@@ -141,7 +141,7 @@ fun HomeScreen(
             if (filteredTasks.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillParentMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                        Text("No hay tareas en esta categorÃƒÂ­a", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        Text("No hay tareas en esta categorÃƒÆ’Ã‚Â­a", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                     }
                 }
             } else {
@@ -164,41 +164,36 @@ fun HomeScreen(
             Icon(Icons.Default.Add, contentDescription = "Nueva Tarea", tint = Color.White)
         }
     }
-
-    // Dialog for Add/Edit
+    // Diálogo separado para crear o editar tareas
     if (selectedTask != null || isCreatingTask) {
-        val taskToEdit = selectedTask ?: Task(titulo = "", descripcion = "", fecha = today, hora = "", prioridad = "Media")
-        var titulo by remember { mutableStateOf(taskToEdit.titulo) }
-        var descripcion by remember { mutableStateOf(taskToEdit.descripcion) }
-        var hora by remember { mutableStateOf(taskToEdit.hora) }
-        var prioridad by remember { mutableStateOf(taskToEdit.prioridad) }
+        val taskToEdit = selectedTask ?: Task(
+            titulo = "",
+            descripcion = "",
+            fecha = today,
+            hora = "",
+            prioridad = "Media"
+        )
 
-        AlertDialog(
-            onDismissRequest = { selectedTask = null; isCreatingTask = false },
-            title = { Text(if (selectedTask != null) "Editar Tarea" else "Nueva Tarea") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("TÃƒÂ­tulo") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("DescripciÃƒÂ³n") }, modifier = Modifier.fillMaxWidth())
-                    TimePickerField(value = hora, label = "Hora", onValueChange = { hora = it })
-                    Text("Prioridad", style = MaterialTheme.typography.labelLarge)
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        listOf("Baja", "Media", "Alta").forEach { p ->
-                            FilterChip(selected = prioridad == p, onClick = { prioridad = p }, label = { Text(p) })
-                        }
-                    }
+        TaskEditorDialog(
+            task = taskToEdit,
+            isEditing = selectedTask != null,
+            onDismiss = {
+                selectedTask = null
+                isCreatingTask = false
+            },
+            onSave = { finalTask ->
+                if (selectedTask != null) {
+                    viewModel.updateTask(finalTask)
+                } else {
+                    viewModel.addTask(finalTask)
                 }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    val finalTask = taskToEdit.copy(titulo = titulo, descripcion = descripcion, hora = hora, prioridad = prioridad)
-                    if (selectedTask != null) viewModel.updateTask(finalTask) else viewModel.addTask(finalTask)
-                    selectedTask = null; isCreatingTask = false
-                }) { Text("Guardar") }
-            },
-            dismissButton = { TextButton(onClick = { selectedTask = null; isCreatingTask = false }) { Text("Cancelar") } }
+
+                selectedTask = null
+                isCreatingTask = false
+            }
         )
     }
+
 }
 
 @Composable

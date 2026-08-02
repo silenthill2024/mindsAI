@@ -1,0 +1,27 @@
+﻿  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:86:        }
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:87:
+> C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:88:        FloatingActionButton(
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:89:            onClick = { showDialog = true },
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:90:            modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:91:            containerColor = MaterialTheme.colorScheme.primary
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:92:        ) {
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:93:            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogFirebaseScreen.kt:94:        }
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:60:        }
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:61:
+> C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:62:        FloatingActionButton(
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:63:            onClick = { showDialog = true },
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:64:            modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:65:            containerColor = MaterialTheme.colorScheme.primary
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:66:        ) {
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:67:            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\BlogRoomScreen.kt:68:        }
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:157:        }
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:158:
+> C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:159:        FloatingActionButton(
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:160:            onClick = { isCreatingTask = true },
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:161:            containerColor = MaterialTheme.colorScheme.primary,
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:162:            modifier = Modifier.align(Alignment.End).padding(top = 16.dp)
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:163:        ) {
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:164:            Icon(Icons.Default.Add, contentDescription = "Nueva Tarea", tint = Color.White)
+  C:\Users\OBED\AndroidStudioProjects\mindsAI\app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:165:        }

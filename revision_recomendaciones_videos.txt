@@ -1,0 +1,541 @@
+
+========================================
+ARCHIVO: .\app\src\main\java\com\example\proyectodesdisint\model\Task.kt
+========================================
+
+package com.example.proyectodesdisint.model
+
+data class Task(
+    var id: String = "",
+    var titulo: String = "",
+    var descripcion: String = "",
+    var fecha: String = "",
+    var hora: String = "",
+    var completado: Boolean = false,
+    var completionTime: Long? = null,
+    var documentId: String = "",
+    var prioridad: String = "Media" // Alta, Media, Baja
+)
+
+========================================
+ARCHIVO: .\app\src\main\java\com\example\proyectodesdisint\ui\youtube\YouTubeSuggestion.kt
+========================================
+
+package com.example.proyectodesdisint.ui.youtube
+
+data class YouTubeSuggestion(
+    val videoId: String,
+    val title: String,
+    val description: String,
+    val startSeconds: Int = 0
+)
+
+val suggestedVideos = listOf(
+    YouTubeSuggestion(
+        videoId = "T8_7vV2sY-M",
+        title = "Video recomendado 1",
+        description = "Contenido recomendado por MindsAI."
+    ),
+    YouTubeSuggestion(
+        videoId = "o65KewRwq_4",
+        title = "Video recomendado 2",
+        description = "Vista previa desde el minuto seleccionado.",
+        startSeconds = 268
+    ),
+    YouTubeSuggestion(
+        videoId = "GL0ZPEhebag",
+        title = "Video recomendado 3",
+        description = "Contenido relacionado con aprendizaje."
+    ),
+    YouTubeSuggestion(
+        videoId = "aOepWJeb7bQ",
+        title = "Video recomendado 4",
+        description = "Sugerencia seleccionada para el usuario."
+    ),
+    YouTubeSuggestion(
+        videoId = "CJUdYgJuYfA",
+        title = "Video recomendado 5",
+        description = "Material para ampliar conocimientos."
+    ),
+    YouTubeSuggestion(
+        videoId = "69qKUoGhoQo",
+        title = "Video recomendado 6",
+        description = "Contenido sugerido por MindsAI."
+    )
+)
+
+========================================
+ARCHIVO: .\app\src\main\java\com\example\proyectodesdisint\ui\youtube\YouTubeSuggestionsCarousel.kt
+========================================
+
+package com.example.proyectodesdisint.ui.youtube
+
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+
+@Composable
+fun YouTubeSuggestionsCarousel(
+    modifier: Modifier = Modifier
+) {
+    val videos = suggestedVideos
+
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = {
+            videos.size
+        }
+    )
+
+    val screenWidth =
+        LocalConfiguration.current.screenWidthDp.dp
+
+    androidx.compose.foundation.layout.Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(
+                horizontal = 20.dp
+            ),
+            pageSpacing = 12.dp
+        ) { page ->
+            YouTubeSuggestionCard(
+                suggestion = videos[page],
+                isActive =
+                    pagerState.currentPage == page &&
+                    !pagerState.isScrollInProgress,
+                modifier = Modifier.width(
+                    screenWidth - 40.dp
+                )
+            )
+        }
+
+        Row(
+            modifier = Modifier.padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            videos.indices.forEach { index ->
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .size(
+                            if (pagerState.currentPage == index) {
+                                9.dp
+                            } else {
+                                6.dp
+                            }
+                        )
+                        .background(
+                            color =
+                                if (pagerState.currentPage == index) {
+                                    Color(0xFF8B3DFF)
+                                } else {
+                                    Color(0xFF4B465A)
+                                },
+                            shape = CircleShape
+                        )
+                )
+
+                if (index < videos.lastIndex) {
+                    Spacer(
+                        modifier = Modifier.width(5.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+========================================
+ARCHIVO: .\app\src\main\java\com\example\proyectodesdisint\ui\homev3\HomeV3Screen.kt
+========================================
+
+package com.example.proyectodesdisint.ui.homev3
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.proyectodesdisint.ui.HomeScreen
+import com.example.proyectodesdisint.ui.youtube.YouTubeSuggestionsCarousel
+
+@Composable
+fun HomeV3Screen(
+    navController: NavController
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        item {
+            HomeV3Header()
+        }
+
+        item {
+            YouTubeSection()
+        }
+
+        item {
+            NeuralRecommendationCard()
+        }
+
+        item {
+            DailyOverviewCard()
+        }
+
+        item {
+            Text(
+                text = "Tus tareas",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            )
+        }
+
+        item {
+            /*
+             * Mantiene el Home anterior mientras construimos v3.
+             * Después moveremos sus componentes uno por uno.
+             */
+            HomeScreen(
+                navController = navController
+            )
+        }
+
+        item {
+            Spacer(
+                modifier = Modifier.height(80.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeV3Header() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = 20.dp,
+                end = 20.dp,
+                top = 20.dp
+            )
+    ) {
+        Text(
+            text = "MindsAI",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Text(
+            text = "Tu asistente académico inteligente",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun YouTubeSection() {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Videos recomendados para ti",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(
+                horizontal = 20.dp,
+                vertical = 8.dp
+            )
+        )
+
+        YouTubeSuggestionsCarousel(
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun NeuralRecommendationCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .background(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(24.dp)
+            )
+            .padding(18.dp)
+    ) {
+        Text(
+            text = "Recomendación MindsAI",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(
+            modifier = Modifier.height(6.dp)
+        )
+
+        Text(
+            text = "Empieza por la tarea más urgente y trabaja durante 25 minutos sin interrupciones.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+private fun DailyOverviewCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(24.dp)
+            )
+            .padding(18.dp)
+    ) {
+        Text(
+            text = "Resumen de hoy",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        Text(
+            text = "La versión 3 conectará aquí tareas, estrés, concentración y actividad del reloj.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+
+========================================
+ARCHIVO: .\app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt
+========================================
+
+package com.example.proyectodesdisint.viewmodel
+
+import android.content.Context
+import androidx.lifecycle.ViewModel
+import com.example.proyectodesdisint.data.FirebaseService
+import com.example.proyectodesdisint.data.SuggestionEngine
+import com.example.proyectodesdisint.model.Task
+import com.example.proyectodesdisint.streaming.WearSyncManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+class HomeViewModel(private val appContext: Context) : ViewModel() {
+
+    private val firebaseService = FirebaseService()
+
+    private val wearSyncManager = WearSyncManager(appContext)
+
+    private val _tasks = MutableStateFlow<List<Task>>(emptyList())
+    val tasks: StateFlow<List<Task>> = _tasks
+
+    private val _suggestion = MutableStateFlow("")
+    val suggestion: StateFlow<String> = _suggestion
+
+    init {
+        firebaseService.listenTasks { taskList ->
+            _tasks.value = taskList
+            _suggestion.value = SuggestionEngine.generateSuggestion(taskList)
+        }
+    }
+
+    fun addTask(task: Task) {
+
+        println("AGREGANDO TAREA: ${task.titulo}")
+
+        firebaseService.addTask(
+            task = task,
+
+            onSuccess = { createdTask ->
+
+                val json = """
+                    {
+                      "type": "TASK_CREATED",
+                      "data": {
+                        "documentId": "${createdTask.documentId}",
+                        "titulo": "${createdTask.titulo}",
+                        "descripcion": "${createdTask.descripcion}",
+                        "fecha": "${createdTask.fecha}",
+                        "hora": "${createdTask.hora}",
+                        "prioridad": "${createdTask.prioridad}",
+                        "completado": ${createdTask.completado}
+                      }
+                    }
+                """.trimIndent()
+
+                wearSyncManager.sendEventToWatch(
+                    json = json,
+                    path = "/stream_event"
+                )
+            },
+
+            onFailure = { error ->
+                println("ERROR AGREGANDO TAREA: ${error.message}")
+            }
+        )
+    }
+
+    fun toggleTaskCompletion(task: Task) {
+
+        val isNowCompleted = !task.completado
+
+        val updatedTask = task.copy(
+            completado = isNowCompleted,
+            completionTime =
+                if (isNowCompleted) {
+                    System.currentTimeMillis()
+                } else {
+                    task.completionTime
+                }
+        )
+
+        firebaseService.updateTask(
+            task = updatedTask,
+
+            onSuccess = { savedTask ->
+
+                val json = """
+                    {
+                      "type": "TASK_UPDATED",
+                      "data": {
+                        "documentId": "${savedTask.documentId}",
+                        "titulo": "${savedTask.titulo}",
+                        "descripcion": "${savedTask.descripcion}",
+                        "fecha": "${savedTask.fecha}",
+                        "hora": "${savedTask.hora}",
+                        "prioridad": "${savedTask.prioridad}",
+                        "completado": ${savedTask.completado},
+                        "completionTime": ${savedTask.completionTime ?: 0}
+                      }
+                    }
+                """.trimIndent()
+
+                wearSyncManager.sendEventToWatch(
+                    json = json,
+                    path = "/stream_event"
+                )
+            },
+
+            onFailure = { error ->
+                println("ERROR ACTUALIZANDO TAREA: ${error.message}")
+            }
+        )
+    }
+
+    fun deleteTask(task: Task) {
+
+        firebaseService.deleteTask(
+            documentId = task.documentId,
+
+            onSuccess = { documentId ->
+
+                val json = """
+                    {
+                      "type": "TASK_DELETED",
+                      "data": {
+                        "documentId": "$documentId"
+                      }
+                    }
+                """.trimIndent()
+
+                wearSyncManager.sendEventToWatch(
+                    json = json,
+                    path = "/stream_event"
+                )
+            },
+
+            onFailure = { error ->
+                println("ERROR ELIMINANDO TAREA: ${error.message}")
+            }
+        )
+    }
+
+    fun getRecommendedTime(): String {
+        return SuggestionEngine.recommendBestHour(_tasks.value)
+    }
+
+    fun updateTask(task: Task) {
+
+        firebaseService.updateTask(
+            task = task,
+
+            onSuccess = { updatedTask ->
+
+                val json = """
+                    {
+                      "type": "TASK_UPDATED",
+                      "data": {
+                        "documentId": "${updatedTask.documentId}",
+                        "titulo": "${updatedTask.titulo}",
+                        "descripcion": "${updatedTask.descripcion}",
+                        "fecha": "${updatedTask.fecha}",
+                        "hora": "${updatedTask.hora}",
+                        "prioridad": "${updatedTask.prioridad}",
+                        "completado": ${updatedTask.completado},
+                        "completionTime": ${updatedTask.completionTime ?: 0}
+                      }
+                    }
+                """.trimIndent()
+
+                wearSyncManager.sendEventToWatch(
+                    json = json,
+                    path = "/stream_event"
+                )
+            },
+
+            onFailure = { error ->
+                println("ERROR EDITANDO TAREA: ${error.message}")
+            }
+        )
+    }
+}

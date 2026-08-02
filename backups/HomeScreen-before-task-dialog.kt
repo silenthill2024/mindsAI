@@ -1,4 +1,4 @@
-﻿package com.example.proyectodesdisint.ui
+package com.example.proyectodesdisint.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -38,7 +38,10 @@ import com.example.proyectodesdisint.model.Task
 import com.example.proyectodesdisint.viewmodel.HomeViewModel
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
 
     var filter by remember { mutableStateOf("TODAY") }
     var isCreatingTask by remember { mutableStateOf(false) }
@@ -287,4 +290,3 @@ fun FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
         Text(text, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge)
     }
 }
-

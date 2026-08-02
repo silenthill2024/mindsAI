@@ -1,4 +1,4 @@
-package com.example.proyectdeswear.presentation.notificationsv3.components
+﻿package com.example.proyectdeswear.presentation.notificationsv3.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -17,10 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -43,10 +40,6 @@ fun FuturisticNotificationCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var confirmDelete by remember(notification.id) {
-        mutableStateOf(false)
-    }
-
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -55,21 +48,19 @@ fun FuturisticNotificationCard(
                 NotificationV3Colors.Surface,
                 RoundedCornerShape(22.dp)
             )
+            .clickable(
+                interactionSource = remember {
+                    MutableInteractionSource()
+                },
+                indication = null,
+                onClick = onClick
+            )
             .padding(
                 horizontal = 12.dp,
                 vertical = 10.dp
             )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(
-                    interactionSource = remember {
-                        MutableInteractionSource()
-                    },
-                    indication = null,
-                    onClick = onClick
-                ),
             verticalAlignment = Alignment.CenterVertically
         ) {
             NotificationTypeIcon(
@@ -110,7 +101,7 @@ fun FuturisticNotificationCard(
                     color = NotificationV3Colors.TextSecondary,
                     fontSize = 8.sp,
                     textAlign = TextAlign.Start,
-                    maxLines = if (expanded) 4 else 2
+                    maxLines = 2
                 )
             }
 
@@ -125,72 +116,24 @@ fun FuturisticNotificationCard(
             )
         }
 
-        if (notification.task != null) {
-            Spacer(modifier = Modifier.height(9.dp))
+        if (expanded && notification.task != null) {
+            Spacer(modifier = Modifier.height(10.dp))
 
-            if (!confirmDelete) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    NotificationActionButton(
-                        text = "Completar",
-                        background = NotificationV3Colors.Purple,
-                        textColor = Color.White,
-                        modifier = Modifier.weight(1f),
-                        onClick = onComplete
-                    )
+            NotificationActionButton(
+                text = "Completar",
+                background = NotificationV3Colors.Purple,
+                textColor = Color.White,
+                onClick = onComplete
+            )
 
-                    NotificationActionButton(
-                        text = "Eliminar",
-                        background = NotificationV3Colors.Red.copy(
-                            alpha = 0.18f
-                        ),
-                        textColor = NotificationV3Colors.Red,
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            confirmDelete = true
-                        }
-                    )
-                }
-            } else {
-                Text(
-                    text = "¿Eliminar esta tarea?",
-                    color = NotificationV3Colors.TextPrimary,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
+            Spacer(modifier = Modifier.height(6.dp))
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    NotificationActionButton(
-                        text = "Cancelar",
-                        background = NotificationV3Colors.SurfaceLight,
-                        textColor = NotificationV3Colors.TextSecondary,
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            confirmDelete = false
-                        }
-                    )
-
-                    NotificationActionButton(
-                        text = "Sí, eliminar",
-                        background = NotificationV3Colors.Red,
-                        textColor = Color.White,
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            confirmDelete = false
-                            onDelete()
-                        }
-                    )
-                }
-            }
+            NotificationActionButton(
+                text = "Eliminar",
+                background = NotificationV3Colors.Red.copy(alpha = 0.18f),
+                textColor = NotificationV3Colors.Red,
+                onClick = onDelete
+            )
         }
     }
 }
@@ -200,11 +143,11 @@ private fun NotificationActionButton(
     text: String,
     background: Color,
     textColor: Color,
-    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
+            .fillMaxWidth()
             .background(
                 background,
                 RoundedCornerShape(14.dp)
@@ -222,9 +165,8 @@ private fun NotificationActionButton(
         Text(
             text = text,
             color = textColor,
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -249,26 +191,11 @@ private fun NotificationTypeIcon(
             when (type) {
                 SmartNotificationType.AI -> {
                     val points = listOf(
-                        Offset(
-                            size.width * 0.20f,
-                            size.height * 0.25f
-                        ),
-                        Offset(
-                            size.width * 0.50f,
-                            size.height * 0.15f
-                        ),
-                        Offset(
-                            size.width * 0.80f,
-                            size.height * 0.30f
-                        ),
-                        Offset(
-                            size.width * 0.28f,
-                            size.height * 0.70f
-                        ),
-                        Offset(
-                            size.width * 0.67f,
-                            size.height * 0.78f
-                        )
+                        Offset(size.width * 0.20f, size.height * 0.25f),
+                        Offset(size.width * 0.50f, size.height * 0.15f),
+                        Offset(size.width * 0.80f, size.height * 0.30f),
+                        Offset(size.width * 0.28f, size.height * 0.70f),
+                        Offset(size.width * 0.67f, size.height * 0.78f)
                     )
 
                     val links = listOf(
@@ -328,10 +255,9 @@ private fun NotificationTypeIcon(
                         color = accent,
                         radius = size.minDimension * 0.30f,
                         center = center,
-                        style =
-                            androidx.compose.ui.graphics.drawscope.Stroke(
-                                width = 2.dp.toPx()
-                            )
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = 2.dp.toPx()
+                        )
                     )
 
                     drawCircle(
