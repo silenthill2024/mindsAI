@@ -10,6 +10,9 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.ChatBubbleOutline
+
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 
 @Composable
 fun BottomBar(navController: NavController) {
@@ -36,7 +39,28 @@ fun BottomBar(navController: NavController) {
                     contentDescription = "Inicio"
                 )
             },
-            label = { Text("Home") },
+            label = { Text("Home", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                indicatorColor = MaterialTheme.colorScheme.primary
+            )
+        )
+
+        NavigationBarItem(
+            selected = currentRoute == "material",
+            onClick = { 
+                if (currentRoute != "material") {
+                    navController.navigate("material") 
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                    contentDescription = "Material"
+                )
+            },
+            label = { Text("Material", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                 selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -57,7 +81,7 @@ fun BottomBar(navController: NavController) {
                     contentDescription = "Calendario"
                 )
             },
-            label = { Text("Calendar") },
+            label = { Text("Calen.", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                 selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -78,7 +102,28 @@ fun BottomBar(navController: NavController) {
                     contentDescription = "IA"
                 )
             },
-            label = { Text("MindsAI") },
+            label = { Text("MindsAI", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                indicatorColor = MaterialTheme.colorScheme.primary
+            )
+        )
+
+        NavigationBarItem(
+            selected = currentRoute == "blog",
+            onClick = { 
+                if (currentRoute != "blog") {
+                    navController.navigate("blog") 
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.ChatBubbleOutline,
+                    contentDescription = "Blog"
+                )
+            },
+            label = { Text("Community", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                 selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -99,7 +144,7 @@ fun BottomBar(navController: NavController) {
                     contentDescription = "Perfil"
                 )
             },
-            label = { Text("Profile") },
+            label = { Text("Profile", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                 selectedTextColor = MaterialTheme.colorScheme.primary,

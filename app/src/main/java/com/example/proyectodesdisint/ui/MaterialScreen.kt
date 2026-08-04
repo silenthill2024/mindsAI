@@ -1,5 +1,6 @@
 package com.example.proyectodesdisint.ui
 
+import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,37 +23,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.proyectodesdisint.data.FirebaseService
 import com.example.proyectodesdisint.model.MaterialApoyo
+import com.example.proyectodesdisint.viewmodel.MaterialViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun MaterialScreen() {
-    val service = remember { FirebaseService() }
-    var materials by remember { mutableStateOf<List<MaterialApoyo>>(emptyList()) }
-    var userRole by remember { mutableStateOf("ALUMNO") }
-    var userName by remember { mutableStateOf("") }
+fun MaterialScreen(viewModel: MaterialViewModel = viewModel()) {
+    val materials by viewModel.materials.collectAsState()
+    val userProfile by viewModel.userProfile.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    val user = FirebaseAuth.getInstance().currentUser
-
-    LaunchedEffect(Unit) {
-        service.listenMaterial { materials = it }
-        user?.let {
-            val profile = service.getUserProfile(it.uid)
-            profile?.let { p -> 
-                userRole = p.role
-                userName = p.nombre
-            }
-        }
-    }
+    val userRole = userProfile?.role ?: "ALUMNO"
+    val userName = userProfile?.nombre ?: ""
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -75,7 +69,7 @@ fun MaterialScreen() {
                     MaterialItemView(
                         item = item,
                         canDelete = userRole == "ADMIN" || userRole == "PROFE",
-                        onDelete = { service.deleteMaterial(item.id) }
+                        onDelete = { viewModel.deleteMaterial(item.id) }
                     )
                 }
             }
@@ -95,9 +89,9 @@ fun MaterialScreen() {
 
     if (showDialog) {
         AddMaterialDialog(
-            service = service,
+            service = FirebaseService(),
             userName = userName,
-            userId = user?.uid ?: "",
+            userId = userId,
             onDismiss = { showDialog = false },
             onSuccess = { 
                 showDialog = false 
@@ -108,6 +102,7 @@ fun MaterialScreen() {
 
 @Composable
 fun MaterialItemView(item: MaterialApoyo, canDelete: Boolean, onDelete: () -> Unit) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -121,14 +116,39 @@ fun MaterialItemView(item: MaterialApoyo, canDelete: Boolean, onDelete: () -> Un
             Surface(
                 color = if (item.tipo == "ARCHIVO") MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primaryContainer,
                 shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(56.dp)
             ) {
-                Icon(
-                    imageVector = if (item.tipo == "ARCHIVO") Icons.Default.AttachFile else Icons.Default.Link,
-                    contentDescription = null,
-                    modifier = Modifier.padding(12.dp),
-                    tint = if (item.tipo == "ARCHIVO") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                )
+                var isError by remember { mutableStateOf(false) }
+                var isLoading by remember { mutableStateOf(true) }
+
+                Box(contentAlignment = Alignment.Center) {
+                    AsyncImage(
+                        model = item.urlMaterial,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        onSuccess = { 
+                            isLoading = false
+                            isError = false 
+                        },
+                        onError = { 
+                            isLoading = false
+                            isError = true 
+                        },
+                        onLoading = {
+                            isLoading = true
+                        }
+                    )
+                    
+                    if (isError || (isLoading && item.urlMaterial.isBlank())) {
+                        Icon(
+                            imageVector = if (item.tipo == "ARCHIVO") Icons.Default.AttachFile else Icons.Default.Link,
+                            contentDescription = null,
+                            modifier = Modifier.padding(12.dp),
+                            tint = if (item.tipo == "ARCHIVO") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -159,7 +179,14 @@ fun MaterialItemView(item: MaterialApoyo, canDelete: Boolean, onDelete: () -> Un
             }
             
             Row {
-                IconButton(onClick = { /* Abrir URL o Descargar */ }) {
+                IconButton(onClick = {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.urlMaterial))
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "No se pudo abrir el recurso", Toast.LENGTH_SHORT).show()
+                    }
+                }) {
                     Icon(Icons.Default.OpenInNew, null, tint = MaterialTheme.colorScheme.primary)
                 }
                 if (canDelete) {

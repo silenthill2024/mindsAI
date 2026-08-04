@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
@@ -41,6 +42,7 @@ import com.example.proyectodesdisint.viewmodel.HomeViewModel
 fun HomeScreen(navController: NavController) {
 
     var filter by remember { mutableStateOf("TODAY") }
+    var searchQuery by remember { mutableStateOf("") }
     var isCreatingTask by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<Task?>(null) }
 
@@ -51,104 +53,138 @@ fun HomeScreen(navController: NavController) {
     val recommendedTime = viewModel.getRecommendedTime()
     val today = java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
-    ) {
-        // AI Insight Section
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)),
-            shape = RoundedCornerShape(16.dp)
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = suggestion, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                if (recommendedTime.isNotBlank() && !recommendedTime.startsWith("Sin suficiente")) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = recommendedTime, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-
-        // Detailed Progress Card
-        val total = tasks.count { it.fecha == today }
-        val completed = tasks.count { it.fecha == today && it.completado }
-        val progress = if (total > 0) completed.toFloat() / total else 0f
-
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.size(60.dp),
-                        strokeWidth = 6.dp,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
-                    )
-                    Text("${(progress * 100).toInt()}%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                }
-                
-                Spacer(Modifier.width(20.dp))
-                
-                Column {
-                    Text("Resumen de Hoy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text("$completed de $total tareas completadas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                }
-            }
-        }
-
-        // Coming Soon Brain Model
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).clickable { navController.navigate("ai") },
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-        ) {
-            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Psychology, null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(12.dp))
-                Text("Modelo Cerebral 3D - Ver Estado", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-            }
-        }
-
-        // Filter Controls
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 16.dp)) {
-            item { FilterButton("Hoy", filter == "TODAY") { filter = "TODAY" } }
-            item { FilterButton("Todas", filter == "ALL") { filter = "ALL" } }
-            item { FilterButton("Pendientes", filter == "PENDING") { filter = "PENDING" } }
-            item { FilterButton("Completadas", filter == "DONE") { filter = "DONE" } }
-        }
-
-        // Tasks List
-        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            val filteredTasks = when (filter) {
-                "TODAY" -> tasks.filter { it.fecha == today }.sortedBy { it.hora }
-                "PENDING" -> tasks.filter { !it.completado }.sortedBy { it.fecha }
-                "DONE" -> tasks.filter { it.completado }.sortedByDescending { it.completionTime }
-                else -> tasks.sortedBy { it.fecha }
-            }
-
-            if (filteredTasks.isEmpty()) {
-                item {
-                    Box(modifier = Modifier.fillParentMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                        Text("No hay tareas en esta categoría", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+            Spacer(modifier = Modifier.height(16.dp))
+            // AI Insight Section
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = suggestion, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    if (recommendedTime.isNotBlank() && !recommendedTime.startsWith("Sin suficiente")) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = recommendedTime, 
+                            style = MaterialTheme.typography.bodySmall, 
+                            color = Color.White.copy(alpha = 0.8f), 
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-            } else {
-                items(filteredTasks, key = { it.documentId }) { task ->
-                    EnhancedTaskItem(
-                        task = task,
-                        onToggle = { viewModel.toggleTaskCompletion(task) },
-                        onDelete = { viewModel.deleteTask(task) },
-                        onEdit = { selectedTask = it }
-                    )
+            }
+
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Buscar tarea...") },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                shape = RoundedCornerShape(24.dp),
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                ),
+                singleLine = true
+            )
+
+            // Detailed Progress Card
+            val total = tasks.count { it.fecha == today }
+            val completed = tasks.count { it.fecha == today && it.completado }
+            val progress = if (total > 0) completed.toFloat() / total else 0f
+
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.size(60.dp),
+                            strokeWidth = 6.dp,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                        Text("${(progress * 100).toInt()}%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    }
+                    
+                    Spacer(Modifier.width(20.dp))
+                    
+                    Column {
+                        Text("Resumen de Hoy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text("$completed de $total tareas completadas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                    }
+                }
+            }
+
+            // Coming Soon Brain Model
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).clickable { navController.navigate("ai") },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            ) {
+                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Psychology, null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(12.dp))
+                    Text("Modelo Cerebral 3D - Ver Estado", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            // Filter Controls
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 16.dp)) {
+                item { FilterButton("Hoy", filter == "TODAY") { filter = "TODAY" } }
+                item { FilterButton("Todas", filter == "ALL") { filter = "ALL" } }
+                item { FilterButton("Pendientes", filter == "PENDING") { filter = "PENDING" } }
+                item { FilterButton("Completadas", filter == "DONE") { filter = "DONE" } }
+            }
+
+            // Tasks List
+            LazyColumn(
+                modifier = Modifier.weight(1f), 
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 100.dp) // Espacio para que el FAB no tape la última tarea
+            ) {
+                val filteredTasks = when (filter) {
+                    "TODAY" -> tasks.filter { it.fecha == today }
+                    "PENDING" -> tasks.filter { !it.completado }
+                    "DONE" -> tasks.filter { it.completado }
+                    else -> tasks
+                }.filter { 
+                    it.titulo.contains(searchQuery, ignoreCase = true) || 
+                    it.descripcion.contains(searchQuery, ignoreCase = true) 
+                }.let { 
+                    if (filter == "TODAY") it.sortedBy { t -> t.hora }
+                    else if (filter == "DONE") it.sortedByDescending { t -> t.completionTime }
+                    else it.sortedBy { t -> t.fecha }
+                }
+
+                if (filteredTasks.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillParentMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
+                            Text("No hay tareas en esta categoría", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        }
+                    }
+                } else {
+                    items(filteredTasks, key = { it.documentId }) { task ->
+                        EnhancedTaskItem(
+                            modifier = Modifier.animateItem(),
+                            task = task,
+                            onToggle = { viewModel.toggleTaskCompletion(task) },
+                            onDelete = { viewModel.deleteTask(task) },
+                            onEdit = { selectedTask = it }
+                        )
+                    }
                 }
             }
         }
@@ -156,7 +192,9 @@ fun HomeScreen(navController: NavController) {
         FloatingActionButton(
             onClick = { isCreatingTask = true },
             containerColor = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.align(Alignment.End).padding(top = 16.dp)
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "Nueva Tarea", tint = Color.White)
         }
@@ -199,7 +237,13 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun EnhancedTaskItem(task: Task, onToggle: () -> Unit, onDelete: () -> Unit, onEdit: (Task) -> Unit) {
+fun EnhancedTaskItem(
+    task: Task, 
+    onToggle: () -> Unit, 
+    onDelete: () -> Unit, 
+    onEdit: (Task) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var offsetX by remember { mutableStateOf(0f) }
     val animatedOffset by animateFloatAsState(offsetX)
     val priorityColor = when (task.prioridad) {
@@ -208,16 +252,21 @@ fun EnhancedTaskItem(task: Task, onToggle: () -> Unit, onDelete: () -> Unit, onE
         else -> MaterialTheme.colorScheme.primary
     }
 
-    Box {
+    Box(modifier = modifier) {
         // Delete Background
-        if (offsetX > 50f) {
-            Card(
-                modifier = Modifier.matchParentSize().padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Red.copy(alpha = 0.8f)),
-                shape = RoundedCornerShape(16.dp)
+        Card(
+            modifier = Modifier.matchParentSize().padding(vertical = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Red.copy(alpha = (offsetX / 200f).coerceIn(0f, 0.8f))
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(start = 16.dp), 
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(modifier = Modifier.fillMaxSize().padding(start = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Delete, null, tint = Color.White)
+                if (offsetX > 20f) {
+                    Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = (offsetX / 100f).coerceIn(0f, 1f)))
                 }
             }
         }
