@@ -32,8 +32,6 @@ import com.example.proyectodesdisint.viewmodel.HomeViewModel
 import com.example.proyectodesdisint.viewmodel.HomeViewModelFactory
 import androidx.compose.runtime.mutableStateOf
 import com.example.proyectodesdisint.ui.youtube.suggestedVideos
-import com.example.proyectodesdisint.ui.coach.AiCoachBubble
-import com.example.proyectodesdisint.ui.homev4.HomeV4Dashboard
 
 @Composable
 fun HomeV3Screen(
@@ -82,10 +80,7 @@ fun HomeV3Screen(
             .recommendationMessage(tasks)
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        LazyColumn(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -100,12 +95,6 @@ fun HomeV3Screen(
             HomeV3Header(
                 pendingTasks =
                     tasks.count { !it.completado }
-            )
-        }
-
-        item {
-            HomeV4Dashboard(
-                tasks = tasks
             )
         }
 
@@ -142,17 +131,6 @@ fun HomeV3Screen(
                 modifier = Modifier.height(80.dp)
             )
         }
-    }
-
-        AiCoachBubble(
-            tasks = tasks,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(
-                    end = 22.dp,
-                    bottom = 22.dp
-                )
-        )
     }
 }
 
@@ -235,7 +213,7 @@ private fun NeuralRecommendationCard(
             .padding(18.dp)
     ) {
         Text(
-            text = "Recomendación MindsAI",
+            text = "Recomendacion MindsAI",
             style =
                 MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,

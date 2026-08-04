@@ -64,7 +64,7 @@ class FirebaseService {
         if (task.documentId.isBlank()) {
             onFailure(
                 IllegalArgumentException(
-                    "La tarea no contiene un documentId válido"
+                    "La tarea no contiene un documentId vÃ¡lido"
                 )
             )
             return
@@ -98,7 +98,7 @@ class FirebaseService {
         if (documentId.isBlank()) {
             onFailure(
                 IllegalArgumentException(
-                    "El documentId de la tarea está vacío"
+                    "El documentId de la tarea estÃ¡ vacÃ­o"
                 )
             )
             return
@@ -200,7 +200,7 @@ class FirebaseService {
         if (blogId.isBlank()) {
             onFailure(
                 IllegalArgumentException(
-                    "El identificador de la publicación está vacío"
+                    "El identificador de la publicaciÃ³n estÃ¡ vacÃ­o"
                 )
             )
             return
@@ -226,7 +226,7 @@ class FirebaseService {
     }
 
     // =========================================================
-    // PERFIL BÁSICO DEL AUTOR
+    // PERFIL BÃSICO DEL AUTOR
     // =========================================================
 
     suspend fun getUserProfile(uid: String): User? =

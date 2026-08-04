@@ -72,7 +72,7 @@ fun BlogFirebaseScreen(navController: NavController) {
                 }
                 blogs!!.isEmpty() -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No hay publicaciones aÃºn. Â¡SÃ© el primero!", color = Color.Gray)
+                        Text("No hay publicaciones aÃƒÂºn. Ã‚Â¡SÃƒÂ© el primero!", color = Color.Gray)
                     }
                 }
                 else -> {
@@ -97,11 +97,11 @@ fun BlogFirebaseScreen(navController: NavController) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Nueva PublicaciÃ³n") },
+            title = { Text("Nueva PublicaciÃƒÂ³n") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("TÃ­tulo") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Â¿QuÃ© quieres compartir?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("TÃƒÂ­tulo") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Ã‚Â¿QuÃƒÂ© quieres compartir?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                 }
             },
             confirmButton = {
@@ -151,7 +151,7 @@ fun BlogFirebaseItemView(blog: BlogPost, service: FirebaseService, currentUserNa
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    " â€¢ " + SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(blog.fecha)),
+                    " Ã¢â‚¬Â¢ " + SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(blog.fecha)),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray
                 )

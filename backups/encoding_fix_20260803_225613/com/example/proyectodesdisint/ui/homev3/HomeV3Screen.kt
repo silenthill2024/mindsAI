@@ -73,7 +73,7 @@ fun HomeV3Screen(
                     .thenBy { it.hora }
             ).first()
 
-            "MindsAI analizó tus tareas. Recomendación basada en: ${importantTask.titulo}."
+            "MindsAI analizÃƒÂ³ tus tareas. RecomendaciÃƒÂ³n basada en: ${importantTask.titulo}."
         }
     }
 
@@ -235,7 +235,7 @@ private fun NeuralRecommendationCard(
             .padding(18.dp)
     ) {
         Text(
-            text = "Recomendación MindsAI",
+            text = "Recomendacion MindsAI",
             style =
                 MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,

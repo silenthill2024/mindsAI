@@ -101,7 +101,26 @@ object TaskVideoRecommendationEngine {
                 "traduccion"
             ),
             fallbackScore = 2
-        ),)
+        ),
+
+        VideoRule(
+            video = YouTubeSuggestion(
+                videoId = "T8_7vV2sY-M",
+                title = "Concentraci\u00F3n para estudiar",
+                description = "Contenido para mejorar la concentraci\u00F3n durante las tareas."
+            ),
+            keywords = setOf(
+                "concentracion",
+                "estudiar",
+                "estudio",
+                "tarea",
+                "proyecto",
+                "entrega",
+                "investigar"
+            ),
+            fallbackScore = 1
+        )
+    )
 
     fun recommend(
         tasks: List<Task>,

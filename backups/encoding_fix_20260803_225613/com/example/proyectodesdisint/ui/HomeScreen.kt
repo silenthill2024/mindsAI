@@ -141,7 +141,7 @@ fun HomeScreen(
             if (filteredTasks.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillParentMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                        Text("No hay tareas en esta categorÃƒÂ­a", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        Text("No hay tareas en esta categorÃƒÆ’Ã‚Â­a", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                     }
                 }
             } else {
@@ -164,7 +164,7 @@ fun HomeScreen(
             Icon(Icons.Default.Add, contentDescription = "Nueva Tarea", tint = Color.White)
         }
     }
-    // Di�logo separado para crear o editar tareas
+    // Diálogo separado para crear o editar tareas
     if (selectedTask != null || isCreatingTask) {
         val taskToEdit = selectedTask ?: Task(
             titulo = "",

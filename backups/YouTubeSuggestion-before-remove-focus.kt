@@ -37,4 +37,11 @@ val suggestedVideos = listOf(
         videoId = "AV7mh5AWiJk",
         title = "Aprender Ingl\u00E9s",
         description = "Contenido recomendado para practicar ingl\u00E9s."
-    ),)
+    ),
+
+    YouTubeSuggestion(
+        videoId = "T8_7vV2sY-M",
+        title = "Concentraci\u00F3n para estudiar",
+        description = "Contenido para mejorar la concentraci\u00F3n."
+    )
+)
