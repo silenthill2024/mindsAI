@@ -1,0 +1,31 @@
+﻿package com.example.proyectodesdisint.model
+
+data class UserProfile(
+    val uid: String = "",
+    val nombre: String = "",
+    val username: String = "",
+    val email: String = "",
+    val universidad: String = "",
+    val carrera: String = "",
+    val gradoEstudio: String = "",
+    val semestre: String = "",
+    val grupo: String = "",
+    val matricula: String = "",
+    val ciudad: String = "",
+    val biografia: String = "",
+    val materiasInteres: List<String> = emptyList(),
+    val materiasActuales: List<String> = emptyList(),
+    val asesorias: List<String> = emptyList(),
+    val objetivos: List<String> = emptyList(),
+    val github: String = "",
+    val linkedin: String = "",
+    val photoUrl: String = "",
+    val perfilCompleto: Int = 0,
+    val nivel: Int = 1,
+    val xp: Int = 0,
+    val xpMax: Int = 1000,
+    val materiasCount: Int = 0,
+    val tareasCompletadas: Int = 0,
+    val horasEstudio: Int = 0,
+    val promedioGeneral: Double = 0.0
+)

@@ -1,7 +1,16 @@
-package com.example.proyectodesdisint.model
+﻿package com.example.proyectodesdisint.model
 
 data class User(
     val uid: String = "",
     val nombre: String = "",
-    val email: String = ""
-)
+    val email: String = "",
+    val role: String = "ALUMNO",
+    val photoUrl: String = ""
+) {
+    val canManageMaterials: Boolean
+        get() = role.uppercase() == "ADMIN" ||
+            role.uppercase() == "PROFE"
+
+    val isAdmin: Boolean
+        get() = role.uppercase() == "ADMIN"
+}
