@@ -42,17 +42,17 @@ fun BottomBar(
         ),
         BottomNavigationItem(
             route = "ai",
-            label = "MindsAI",
+            label = "IA",
             icon = Icons.Default.SmartToy
         ),
         BottomNavigationItem(
             route = "materials",
-            label = "Materiales",
+            label = "Apoyo",
             icon = Icons.Default.MenuBook
         ),
         BottomNavigationItem(
             route = "blog",
-            label = "Comunidad",
+            label = "Blog",
             icon = Icons.Default.Forum
         ),
         BottomNavigationItem(
@@ -99,7 +99,12 @@ fun BottomBar(
                     )
                 },
                 label = {
-                    Text(item.label)
+                    Text(
+                        text = item.label,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        softWrap = false
+                    )
                 },
                 colors =
                     NavigationBarItemDefaults.colors(

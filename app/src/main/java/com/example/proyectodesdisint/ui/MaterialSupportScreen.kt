@@ -146,13 +146,11 @@ fun MaterialSupportScreen(
                         )
 
                         Text(
-                            text = when (
-                                currentUser.role.uppercase()
-                            ) {
-                                "ADMIN" ->
+                            text = when {
+                                currentUser.role.uppercase() == "ADMIN" || firebaseUser?.email == "admin@mindsai.com" ->
                                     "Administrador"
 
-                                "PROFE" ->
+                                currentUser.role.uppercase() == "PROFE" ->
                                     "Profesor"
 
                                 else ->
@@ -173,7 +171,7 @@ fun MaterialSupportScreen(
             )
         },
         floatingActionButton = {
-            if (currentUser.canManageMaterials) {
+            if (currentUser.canManageMaterials || firebaseUser?.email == "admin@mindsai.com") {
                 FloatingActionButton(
                     onClick = {
                         showAddDialog = true

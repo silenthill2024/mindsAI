@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,8 +32,10 @@ import coil.compose.AsyncImage
 import com.example.proyectodesdisint.data.FirebaseService
 import com.example.proyectodesdisint.model.BlogPost
 import com.example.proyectodesdisint.model.BlogReply
+import com.example.proyectodesdisint.model.UserProfile
 import com.example.proyectodesdisint.streaming.WearSyncManager
 import com.example.proyectodesdisint.ui.components.LetterAvatar
+import com.example.proyectodesdisint.ui.components.ProfileImageDisplay
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
@@ -48,15 +51,18 @@ fun BlogFirebaseScreen(navController: NavController) {
     var content by remember { mutableStateOf("") }
     var userName by remember { mutableStateOf("Explorador") }
     var userPhotoUrl by remember { mutableStateOf("") }
+    var currentUserProfile by remember { mutableStateOf<UserProfile?>(null) }
     val user = FirebaseAuth.getInstance().currentUser
 
     LaunchedEffect(Unit) {
         service.listenBlogs { blogs = it }
         user?.let {
             val profile = service.getUserProfile(it.uid)
-            profile?.let { p -> 
-                userName = p.nombre
-                userPhotoUrl = p.photoUrl
+            if (profile != null) {
+                // Mapping User to UserProfile for ease of use in role checking
+                currentUserProfile = UserProfile(uid = profile.uid, nombre = profile.nombre, role = profile.role, photoUrl = profile.photoUrl)
+                userName = profile.nombre
+                userPhotoUrl = profile.photoUrl
             }
         }
     }
@@ -91,7 +97,13 @@ fun BlogFirebaseScreen(navController: NavController) {
                 else -> {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(blogs!!) { blog ->
-                            BlogFirebaseItemView(blog, service, userName, userPhotoUrl)
+                            BlogFirebaseItemView(
+                                blog = blog, 
+                                service = service, 
+                                currentUserName = userName, 
+                                currentUserPhotoUrl = userPhotoUrl,
+                                currentUserRole = if (currentUserProfile?.isAdmin == true) "ADMIN" else (currentUserProfile?.role ?: "ALUMNO")
+                            )
                         }
                     }
                 }
@@ -137,55 +149,21 @@ fun BlogFirebaseScreen(navController: NavController) {
 }
 
 @Composable
-fun ProfileImageDisplay(photoUrl: String, userName: String, size: Dp) {
-    val bitmapState = remember(photoUrl) {
-        if (photoUrl.startsWith("data:image")) {
-            try {
-                val base64String = photoUrl.substringAfter(",")
-                val imageBytes = Base64.decode(base64String, Base64.DEFAULT)
-                BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-            } catch (e: Exception) {
-                null
-            }
-        } else {
-            null
-        }
-    }
-
-    if (bitmapState != null) {
-        Image(
-            bitmap = bitmapState.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-    } else if (photoUrl.isNotBlank() && !photoUrl.startsWith("data:image")) {
-        AsyncImage(
-            model = photoUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-    } else {
-        LetterAvatar(name = userName, size = size)
-    }
-}
-
-@Composable
-fun BlogFirebaseItemView(blog: BlogPost, service: FirebaseService, currentUserName: String, currentUserPhotoUrl: String) {
+fun BlogFirebaseItemView(
+    blog: BlogPost, 
+    service: FirebaseService, 
+    currentUserName: String, 
+    currentUserPhotoUrl: String,
+    currentUserRole: String = "ALUMNO"
+) {
     var expanded by remember { mutableStateOf(false) }
     var replies by remember { mutableStateOf(listOf<BlogReply>()) }
     var replyText by remember { mutableStateOf("") }
     val user = FirebaseAuth.getInstance().currentUser
 
-    LaunchedEffect(expanded) {
-        if (expanded) {
-            service.listenBlogReplies(blog.id) { replies = it }
-        }
+    // Load replies immediately to show count
+    LaunchedEffect(blog.id) {
+        service.listenBlogReplies(blog.id) { replies = it }
     }
 
     Card(
@@ -235,6 +213,17 @@ fun BlogFirebaseItemView(blog: BlogPost, service: FirebaseService, currentUserNa
                 Icon(Icons.Default.ChatBubbleOutline, null, modifier = Modifier.size(16.dp), tint = Color.Gray)
                 Spacer(Modifier.width(4.dp))
                 Text("${replies.size} Comentarios", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+
+                if (currentUserRole == "ADMIN") {
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = {
+                        // Delete post logic
+                        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        db.collection("blogs").document(blog.id).delete()
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Eliminar post", tint = MaterialTheme.colorScheme.error)
+                    }
+                }
             }
 
             if (expanded) {
@@ -253,9 +242,18 @@ fun BlogFirebaseItemView(blog: BlogPost, service: FirebaseService, currentUserNa
                         
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(reply.autor, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             Text(reply.texto, style = MaterialTheme.typography.bodySmall)
+                        }
+
+                        if (currentUserRole == "ADMIN") {
+                            IconButton(onClick = {
+                                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                db.collection("blogs").document(blog.id).collection("replies").document(reply.id).delete()
+                            }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Eliminar respuesta", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                            }
                         }
                     }
                 }

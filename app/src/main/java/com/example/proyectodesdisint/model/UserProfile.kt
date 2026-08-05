@@ -20,6 +20,7 @@ data class UserProfile(
     val github: String = "",
     val linkedin: String = "",
     val photoUrl: String = "",
+    val role: String = "ALUMNO",
     val perfilCompleto: Int = 0,
     val nivel: Int = 1,
     val xp: Int = 0,
@@ -28,4 +29,10 @@ data class UserProfile(
     val tareasCompletadas: Int = 0,
     val horasEstudio: Int = 0,
     val promedioGeneral: Double = 0.0
-)
+) {
+    val isAdmin: Boolean
+        get() = role.uppercase() == "ADMIN" || email == "admin@mindsai.com"
+
+    val canManageMaterials: Boolean
+        get() = role.uppercase() == "ADMIN" || role.uppercase() == "PROFE" || email == "admin@mindsai.com"
+}

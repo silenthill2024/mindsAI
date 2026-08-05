@@ -26,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.proyectodesdisint.ui.AIScreen
+import com.example.proyectodesdisint.ui.AdminPanelScreen
 import com.example.proyectodesdisint.ui.AppLogo
 import com.example.proyectodesdisint.ui.BlogFirebaseScreen
 import com.example.proyectodesdisint.ui.BottomBar
@@ -35,7 +36,7 @@ import com.example.proyectodesdisint.ui.LoginScreen
 import com.example.proyectodesdisint.ui.ProfileScreen
 import com.example.proyectodesdisint.ui.RegisterScreen
 import com.example.proyectodesdisint.ui.TasksScreen
-import com.example.proyectodesdisint.ui.components.LetterAvatar
+import com.example.proyectodesdisint.ui.components.ProfileImageDisplay
 import com.example.proyectodesdisint.viewmodel.ProfileViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.example.proyectodesdisint.ui.MaterialSupportScreen
@@ -78,27 +79,14 @@ fun AppNavigation() {
                     },
                     navigationIcon = {
                         if (currentRoute != "profile") {
-                            Box(
+                            ProfileImageDisplay(
+                                photoUrl = profile.photoUrl,
+                                userName = profile.nombre.ifBlank { "U" },
+                                size = 36.dp,
                                 modifier = Modifier
                                     .padding(start = 12.dp)
-                                    .size(36.dp)
-                                    .clip(CircleShape)
                                     .clickable { navController.navigate("profile") }
-                            ) {
-                                if (profile.photoUrl.isNotBlank()) {
-                                    AsyncImage(
-                                        model = profile.photoUrl,
-                                        contentDescription = "Ir al perfil",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                } else {
-                                    LetterAvatar(
-                                        name = profile.nombre.ifBlank { "U" },
-                                        size = 36.dp
-                                    )
-                                }
-                            }
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -158,6 +146,10 @@ fun AppNavigation() {
 
             composable("tasks") {
                 TasksScreen(navController)
+            }
+
+            composable("admin_panel") {
+                AdminPanelScreen(navController)
             }
         }
     }
