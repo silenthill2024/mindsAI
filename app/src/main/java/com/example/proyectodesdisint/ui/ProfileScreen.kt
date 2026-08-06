@@ -1,7 +1,11 @@
 ﻿package com.example.proyectodesdisint.ui
 
+import android.app.Application
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -10,14 +14,26 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material3.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -25,18 +41,29 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.proyectodesdisint.model.UserProfile
 import com.example.proyectodesdisint.ui.theme.ThemeState
+import com.example.proyectodesdisint.ui.components.LetterAvatar
+import com.example.proyectodesdisint.utils.GravatarHelper
 import com.example.proyectodesdisint.viewmodel.AuthViewModel
 import com.example.proyectodesdisint.viewmodel.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    authViewModel: AuthViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = com.example.proyectodesdisint.viewmodel.ProfileViewModelFactory(context.applicationContext as Application)
+    )
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { profileViewModel.uploadProfileImage(it) }
+    }
 
     val savedProfile by profileViewModel.profile.collectAsState()
     val isLoading by profileViewModel.isLoading.collectAsState()
@@ -114,50 +141,236 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(20.dp),
+                .padding(horizontal = 20.dp, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
+            // Header: "Perfil"
+            Row(
                 modifier = Modifier
-                    .size(105.dp)
-                    .clip(CircleShape)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer
-                    ),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Perfil",
-                    modifier = Modifier.size(80.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                Text(
+                    text = "Perfil",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            // Main Info Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Profile Image with Edit Button
+                    Box(
+                        modifier = Modifier.size(100.dp),
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (savedProfile.photoUrl.isNotBlank()) {
+                                AsyncImage(
+                                    model = savedProfile.photoUrl,
+                                    contentDescription = "Perfil",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                LetterAvatar(
+                                    name = nombre.ifBlank { "M" },
+                                    size = 100.dp
+                                )
+                            }
+                        }
+                        // Edit pencil button
+                        Box(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surface)
+                                .clickable { imagePicker.launch("image/*") }
+                                .padding(4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
 
-            Text(
-                text = nombre.ifBlank { "Usuario MindsAI" },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
+                    Spacer(modifier = Modifier.width(16.dp))
 
-            Text(
-                text = savedProfile.email.ifBlank {
-                    "Correo no disponible"
-                },
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                    // User Details
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = nombre.ifBlank { "Usuario MindsAI" },
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Estudiante",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Email, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = savedProfile.email, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.LocationOn, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = if (ciudad.isNotBlank()) ciudad else "México, MX", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        }
+                    }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ProfileCompletionCard(
-                percentage = savedProfile.perfilCompleto
-            )
+                    // Level Badge
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                            .padding(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.CheckCircle, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        }
+                        Text("Nivel ${savedProfile.nivel}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Text("Estudioso", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                        
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("${savedProfile.xp} XP", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        LinearProgressIndicator(
+                            progress = { savedProfile.xp.toFloat() / savedProfile.xpMax },
+                            modifier = Modifier.width(50.dp).height(4.dp).clip(CircleShape),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            ProfileSection(title = "Información personal") {
+            // Stats Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Book,
+                    value = "${savedProfile.materiasCount}",
+                    label = "Materias",
+                    color = Color(0xFF9C27B0)
+                )
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.CheckCircle,
+                    value = "${savedProfile.tareasCompletadas}",
+                    label = "Tareas\ncompletadas",
+                    color = Color(0xFF4CAF50),
+                    onClick = { navController.navigate("tasks") }
+                )
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Schedule,
+                    value = "${savedProfile.horasEstudio}h",
+                    label = "Horas de\nestudio",
+                    color = Color(0xFFFF9800)
+                )
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.TrendingUp,
+                    value = "${savedProfile.promedioGeneral}",
+                    label = "Promedio\ngeneral",
+                    color = Color(0xFF2196F3)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Bio Section (User Description)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Sobre mí",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = biografia.ifBlank { "Aún no has añadido una biografía. Cuéntanos sobre tus metas académicas." },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    if (github.isNotBlank() || linkedin.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            if (github.isNotBlank()) {
+                                SocialBadge(label = "GitHub", color = Color.Black)
+                            }
+                            if (linkedin.isNotBlank()) {
+                                SocialBadge(label = "LinkedIn", color = Color(0xFF0077B5))
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Navigation Button to Tasks
+            Button(
+                onClick = { navController.navigate("tasks") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(Icons.Default.Assignment, null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Ir a mis Tareas de Hoy", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            ProfileSection(title = "Información académica") {
                 ProfileField(
                     value = nombre,
                     onValueChange = { nombre = it },
@@ -371,6 +584,7 @@ fun ProfileScreen(
                         objetivos = textToList(objetivos),
                         github = github.trim(),
                         linkedin = linkedin.trim(),
+                        photoUrl = savedProfile.photoUrl,
                         perfilCompleto =
                             savedProfile.perfilCompleto
                     )
@@ -439,6 +653,69 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SocialBadge(label: String, color: Color) {
+    Surface(
+        color = color.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(8.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.2f))
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun StatCard(
+    modifier: Modifier = Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    value: String,
+    label: String,
+    color: Color,
+    onClick: (() -> Unit)? = null
+) {
+    Card(
+        modifier = modifier
+            .height(120.dp)
+            .clickable(enabled = onClick != null) { onClick?.invoke() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified
             )
         }
     }

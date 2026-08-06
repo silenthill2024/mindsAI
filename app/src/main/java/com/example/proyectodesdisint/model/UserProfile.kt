@@ -19,5 +19,13 @@ data class UserProfile(
     val objetivos: List<String> = emptyList(),
     val github: String = "",
     val linkedin: String = "",
-    val perfilCompleto: Int = 0
+    val photoUrl: String = "",
+    val perfilCompleto: Int = 0,
+    val nivel: Int = 1,
+    val xp: Int = 0,
+    val xpMax: Int = 1000,
+    val materiasCount: Int = 0,
+    val tareasCompletadas: Int = 0,
+    val horasEstudio: Int = 0,
+    val promedioGeneral: Double = 0.0
 )
