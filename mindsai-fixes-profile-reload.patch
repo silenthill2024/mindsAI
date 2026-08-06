@@ -1,0 +1,18 @@
+diff --git a/app/src/main/java/com/example/proyectodesdisint/navigation/AppNavigation.kt b/app/src/main/java/com/example/proyectodesdisint/navigation/AppNavigation.kt
+index 557d212..9444e48 100644
+--- a/app/src/main/java/com/example/proyectodesdisint/navigation/AppNavigation.kt
++++ b/app/src/main/java/com/example/proyectodesdisint/navigation/AppNavigation.kt
+@@ -56,8 +56,11 @@ fun AppNavigation() {
+     val navBackStackEntry by navController.currentBackStackEntryAsState()
+     val currentRoute = navBackStackEntry?.destination?.route
+ 
+-    // Sincronizar el perfil cuando cambie el usuario o la pantalla
+-    androidx.compose.runtime.LaunchedEffect(user, currentRoute) {
++    // Sincronizar el perfil solo cuando cambia el usuario (login/logout),
++    // no en cada navegación — antes se recargaba desde Firestore en CADA
++    // cambio de pantalla, lo cual es innecesario y puede sentirse como
++    // que la app se "traba" si la conexión está lenta.
++    androidx.compose.runtime.LaunchedEffect(user) {
+         profileViewModel.loadProfile()
+     }
+ 

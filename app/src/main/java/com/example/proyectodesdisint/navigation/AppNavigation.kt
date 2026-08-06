@@ -28,7 +28,7 @@ import coil.compose.AsyncImage
 import com.example.proyectodesdisint.ui.AIScreen
 import com.example.proyectodesdisint.ui.AdminPanelScreen
 import com.example.proyectodesdisint.ui.AppLogo
-import com.example.proyectodesdisint.ui.BlogFirebaseScreen
+import com.example.proyectodesdisint.ui.BlogHubScreen
 import com.example.proyectodesdisint.ui.BottomBar
 import com.example.proyectodesdisint.ui.CalendarScreen
 import com.example.proyectodesdisint.ui.homev3.HomeV3Screen
@@ -56,8 +56,11 @@ fun AppNavigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Sincronizar el perfil cuando cambie el usuario o la pantalla
-    androidx.compose.runtime.LaunchedEffect(user, currentRoute) {
+    // Sincronizar el perfil solo cuando cambia el usuario (login/logout),
+    // no en cada navegación — antes se recargaba desde Firestore en CADA
+    // cambio de pantalla, lo cual es innecesario y puede sentirse como
+    // que la app se "traba" si la conexión está lenta.
+    androidx.compose.runtime.LaunchedEffect(user) {
         profileViewModel.loadProfile()
     }
 
@@ -133,7 +136,7 @@ fun AppNavigation() {
             }
 
             composable("blog") {
-                BlogFirebaseScreen(navController)
+                BlogHubScreen(navController)
             }
             composable("materials") {
                 MaterialSupportScreen(navController)

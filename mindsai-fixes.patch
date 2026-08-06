@@ -1,0 +1,341 @@
+diff --git a/app/src/main/java/com/example/proyectodesdisint/data/TareaRepository.kt b/app/src/main/java/com/example/proyectodesdisint/data/TareaRepository.kt
+deleted file mode 100644
+index 0f72d46..0000000
+--- a/app/src/main/java/com/example/proyectodesdisint/data/TareaRepository.kt
++++ /dev/null
+@@ -1,45 +0,0 @@
+-package com.example.proyectodesdisint.data
+-
+-import com.google.firebase.firestore.FirebaseFirestore
+-import com.google.firebase.auth.FirebaseAuth
+-import com.example.proyectodesdisint.model.Task
+-import kotlinx.coroutines.tasks.await
+-
+-class TareaRepository {
+-
+-    private val db = FirebaseFirestore.getInstance()
+-    private val auth = FirebaseAuth.getInstance()
+-
+-    private fun getUserId(): String {
+-        return auth.currentUser?.uid ?: ""
+-    }
+-
+-    suspend fun agregarTarea(tarea: Task) {
+-        val uid = getUserId()
+-
+-        db.collection("users")
+-            .document(uid)
+-            .collection("tareas")
+-            .add(tarea)
+-            .await()
+-    }
+-
+-    suspend fun obtenerTareas(): List<Task> {
+-        val uid = getUserId()
+-
+-        val result = db.collection("users")
+-            .document(uid)
+-            .collection("tareas")
+-            .get()
+-            .await()
+-
+-        return result.documents.map { doc ->
+-            Task(
+-                id = doc.id,
+-                titulo = doc.getString("titulo") ?: "",
+-                descripcion = doc.getString("descripcion") ?: "",
+-                fecha = doc.getString("fecha") ?: ""
+-            )
+-        }
+-    }
+-}
+diff --git a/app/src/main/java/com/example/proyectodesdisint/model/Tarea.kt b/app/src/main/java/com/example/proyectodesdisint/model/Tarea.kt
+deleted file mode 100644
+index 7a6c56d..0000000
+--- a/app/src/main/java/com/example/proyectodesdisint/model/Tarea.kt
++++ /dev/null
+@@ -1,8 +0,0 @@
+-package com.example.proyectodesdisint.model
+-//OBSOLETO NO USAR
+-data class Tarea(
+-    val id: String = "",
+-    val titulo: String = "",
+-    val descripcion: String = "",
+-    val fecha: String = ""
+-)
+diff --git a/app/src/main/java/com/example/proyectodesdisint/navigation/AppNavigation.kt b/app/src/main/java/com/example/proyectodesdisint/navigation/AppNavigation.kt
+index 39282d1..557d212 100644
+--- a/app/src/main/java/com/example/proyectodesdisint/navigation/AppNavigation.kt
++++ b/app/src/main/java/com/example/proyectodesdisint/navigation/AppNavigation.kt
+@@ -28,7 +28,7 @@ import coil.compose.AsyncImage
+ import com.example.proyectodesdisint.ui.AIScreen
+ import com.example.proyectodesdisint.ui.AdminPanelScreen
+ import com.example.proyectodesdisint.ui.AppLogo
+-import com.example.proyectodesdisint.ui.BlogFirebaseScreen
++import com.example.proyectodesdisint.ui.BlogHubScreen
+ import com.example.proyectodesdisint.ui.BottomBar
+ import com.example.proyectodesdisint.ui.CalendarScreen
+ import com.example.proyectodesdisint.ui.homev3.HomeV3Screen
+@@ -133,7 +133,7 @@ fun AppNavigation() {
+             }
+ 
+             composable("blog") {
+-                BlogFirebaseScreen(navController)
++                BlogHubScreen(navController)
+             }
+             composable("materials") {
+                 MaterialSupportScreen(navController)
+diff --git a/app/src/main/java/com/example/proyectodesdisint/ui/BlogHubScreen.kt b/app/src/main/java/com/example/proyectodesdisint/ui/BlogHubScreen.kt
+new file mode 100644
+index 0000000..bcf4d70
+--- /dev/null
++++ b/app/src/main/java/com/example/proyectodesdisint/ui/BlogHubScreen.kt
+@@ -0,0 +1,67 @@
++package com.example.proyectodesdisint.ui
++
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.filled.CloudQueue
++import androidx.compose.material.icons.filled.PhoneAndroid
++import androidx.compose.material3.Icon
++import androidx.compose.material3.Tab
++import androidx.compose.material3.TabRow
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableIntStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
++import androidx.compose.ui.Modifier
++import androidx.navigation.NavController
++
++/**
++ * Pantalla "Blog": combina dos fuentes de datos distintas para dejar claro
++ * el uso de las dos bases de datos del proyecto:
++ *
++ *  - "Comunidad" -> Firestore (NoSQL, en la nube). Publicaciones y
++ *    respuestas visibles para todos los usuarios en tiempo real.
++ *
++ *  - "Mis notas" -> Room (SQL, local en el dispositivo). Espacio de
++ *    reflexión personal que NO se sube a la nube, pensado para notas
++ *    privadas que solo existen en este teléfono.
++ *
++ * Ambas pestañas son features reales y activas (no hay duplicidad: cada
++ * una tiene un propósito distinto y una base de datos distinta).
++ */
++@Composable
++fun BlogHubScreen(navController: NavController) {
++
++    var selectedTab by remember { mutableIntStateOf(0) }
++    val tabs = listOf("Comunidad", "Mis notas")
++
++    Column(modifier = Modifier.fillMaxSize()) {
++
++        TabRow(selectedTabIndex = selectedTab) {
++            tabs.forEachIndexed { index, title ->
++                Tab(
++                    selected = selectedTab == index,
++                    onClick = { selectedTab = index },
++                    text = { Text(title) },
++                    icon = {
++                        Icon(
++                            imageVector = if (index == 0) {
++                                Icons.Default.CloudQueue
++                            } else {
++                                Icons.Default.PhoneAndroid
++                            },
++                            contentDescription = title
++                        )
++                    }
++                )
++            }
++        }
++
++        when (selectedTab) {
++            0 -> BlogFirebaseScreen(navController) // Firestore (NoSQL)
++            1 -> BlogRoomScreen()                  // Room (SQL)
++        }
++    }
++}
+diff --git a/app/src/main/java/com/example/proyectodesdisint/viewmodel/LearningStateViewModel.kt b/app/src/main/java/com/example/proyectodesdisint/viewmodel/LearningStateViewModel.kt
+index dab44e2..9f7abb7 100644
+--- a/app/src/main/java/com/example/proyectodesdisint/viewmodel/LearningStateViewModel.kt
++++ b/app/src/main/java/com/example/proyectodesdisint/viewmodel/LearningStateViewModel.kt
+@@ -5,27 +5,38 @@ import com.example.proyectodesdisint.model.UserProfile
+ import kotlinx.coroutines.flow.MutableStateFlow
+ import kotlinx.coroutines.flow.StateFlow
+ import kotlin.math.exp
+-import kotlin.random.Random
+ 
++/**
++ * Analiza el estado de aprendizaje del alumno usando una red neuronal
++ * de arquitectura fija (4 entradas -> 5 ocultas -> 3 salidas).
++ *
++ * IMPORTANTE: los pesos NO son aleatorios. Fueron diseñados a mano para que
++ * cada neurona de la capa oculta represente un criterio pedagógico concreto
++ * (ver comentarios en TinyLearningNN). Esto garantiza que, para un mismo
++ * perfil de alumno, el resultado sea siempre el mismo (determinista) y que
++ * la clasificación tenga sentido: más XP, más tareas completadas, más horas
++ * de estudio y mejor promedio deben acercar al alumno a "Óptimo", y lo
++ * contrario debe acercarlo a "Requiere apoyo".
++ */
+ class LearningStateViewModel : ViewModel() {
+ 
+     private val _learningState = MutableStateFlow<LearningAnalysis?>(null)
+     val learningState: StateFlow<LearningAnalysis?> = _learningState
+ 
++    // La red se crea una sola vez (pesos fijos), no en cada análisis.
++    private val network = TinyLearningNN()
++
+     fun analyzeLearningState(profile: UserProfile) {
+         val features = buildFeatureVector(profile)
+-        
+-        // Simulación de Red Neuronal para el Estado de Aprendizaje
+-        // Capa de entrada (4) -> Oculta (5) -> Salida (3: Optimo, En desarrollo, Requiere apoyo)
+-        val network = TinyLearningNN(4, 5, 3)
++
+         val predictions = network.predict(features)
+-        
++
+         val states = listOf("Óptimo", "En desarrollo", "Requiere apoyo")
+         val bestIndex = predictions.indices.maxByOrNull { predictions[it] } ?: 1
+-        
++
+         _learningState.value = LearningAnalysis(
+             state = states[bestIndex],
+-            index = (predictions[0] * 100).toInt(), // Índice basado en la probabilidad de "Óptimo"
++            index = (predictions[0] * 100).toInt(), // Probabilidad de "Óptimo" (0-100)
+             confidence = predictions[bestIndex],
+             recommendations = generateRecommendations(states[bestIndex], profile)
+         )
+@@ -33,7 +44,7 @@ class LearningStateViewModel : ViewModel() {
+ 
+     private fun buildFeatureVector(profile: UserProfile): DoubleArray {
+         return doubleArrayOf(
+-            profile.xp.toDouble() / profile.xpMax.coerceAtLeast(1).toDouble(),
++            (profile.xp.toDouble() / profile.xpMax.coerceAtLeast(1).toDouble()).coerceIn(0.0, 1.0),
+             (profile.tareasCompletadas.toDouble() / 50.0).coerceIn(0.0, 1.0),
+             (profile.horasEstudio.toDouble() / 100.0).coerceIn(0.0, 1.0),
+             (profile.promedioGeneral / 10.0).coerceIn(0.0, 1.0)
+@@ -67,23 +78,72 @@ class LearningStateViewModel : ViewModel() {
+         val recommendations: List<String>
+     )
+ 
+-    private class TinyLearningNN(inputSize: Int, hiddenSize: Int, outputSize: Int) {
+-        private val weightsIH = Array(hiddenSize) { DoubleArray(inputSize) { Random.nextDouble(-1.0, 1.0) } }
+-        private val weightsHO = Array(outputSize) { DoubleArray(hiddenSize) { Random.nextDouble(-1.0, 1.0) } }
++    /**
++     * Red neuronal feed-forward con pesos fijos (hand-crafted), no entrenados
++     * por gradiente pero diseñados para que cada neurona tenga un significado:
++     *
++     * Entradas: [xpRatio, tareasRatio, horasRatio, promedioRatio]  (cada una 0.0 a 1.0)
++     *
++     * Capa oculta (5 neuronas):
++     *  h0 = Rendimiento general (promedio ponderado de las 4 entradas)
++     *  h1 = Esfuerzo/constancia (horas de estudio + tareas completadas)
++     *  h2 = Desempeño académico (promedio de calificaciones con más peso)
++     *  h3 = Indicador de riesgo (se activa cuando TODAS las entradas son bajas)
++     *  h4 = Progreso/constancia (xp + tareas completadas)
++     *
++     * Capa de salida (3 neuronas -> softmax):
++     *  out0 = Óptimo         (combina h0,h1,h2,h4 positivo; h3 negativo)
++     *  out1 = En desarrollo  (zona media, poco sensible a los extremos)
++     *  out2 = Requiere apoyo (h3 positivo; el resto negativo)
++     *
++     * Cada neurona oculta tiene un bias calculado para que, con un alumno
++     * "promedio" (todas las entradas en 0.5), su activación sigmoide sea
++     * cercana a 0.5. Así la red reacciona simétricamente hacia arriba o
++     * hacia abajo según el desempeño real del alumno.
++     */
++    private class TinyLearningNN {
++
++        // Pesos capa oculta: [neurona][entrada]
++        private val weightsIH = arrayOf(
++            doubleArrayOf(1.2, 1.2, 1.0, 1.4),   // h0 rendimiento general
++            doubleArrayOf(0.2, 1.6, 1.6, 0.2),   // h1 esfuerzo/constancia
++            doubleArrayOf(0.3, 0.3, 0.3, 2.2),   // h2 desempeño académico
++            doubleArrayOf(-1.3, -1.3, -1.0, -1.6), // h3 riesgo (pesos negativos)
++            doubleArrayOf(1.0, 1.4, 0.8, 0.4)    // h4 progreso/constancia
++        )
++
++        // Bias por neurona oculta (centra la sigmoide en 0.5 para un alumno promedio)
++        private val biasIH = doubleArrayOf(-2.4, -1.8, -1.55, 2.6, -1.8)
++
++        // Pesos capa de salida: [neurona salida][neurona oculta]
++        private val weightsHO = arrayOf(
++            doubleArrayOf(1.8, 0.8, 1.2, -2.4, 0.8),    // out0 Óptimo
++            doubleArrayOf(0.6, 0.5, 0.5, -0.6, 0.5),    // out1 En desarrollo
++            doubleArrayOf(-1.0, -0.6, -0.8, 2.6, -0.6)  // out2 Requiere apoyo
++        )
++
++        // Bias por neurona de salida (calibrado para que un alumno "promedio"
++        // (todas las entradas en 0.5) caiga en "En desarrollo", y solo un
++        // desempeño claramente alto o bajo mueva la clasificación al extremo)
++        private val biasHO = doubleArrayOf(-1.1, 0.5, -1.3)
+ 
+         fun predict(inputs: DoubleArray): DoubleArray {
+             val hidden = DoubleArray(weightsIH.size) { i ->
+-                var sum = 0.0
++                var sum = biasIH[i]
+                 for (j in inputs.indices) sum += inputs[j] * weightsIH[i][j]
+-                1.0 / (1.0 + exp(-sum))
++                sigmoid(sum)
+             }
++
+             val output = DoubleArray(weightsHO.size) { i ->
+-                var sum = 0.0
++                var sum = biasHO[i]
+                 for (j in hidden.indices) sum += hidden[j] * weightsHO[i][j]
+                 exp(sum)
+             }
++
+             val sumExp = output.sum()
+-            return output.map { it / sumExp }.toDoubleArray()
++            return output.map { it / sumExp }.toDoubleArray() // softmax
+         }
++
++        private fun sigmoid(x: Double): Double = 1.0 / (1.0 + exp(-x))
+     }
+ }
+diff --git a/app/src/main/java/com/example/proyectodesdisint/viewmodel/TareaViewModel.kt b/app/src/main/java/com/example/proyectodesdisint/viewmodel/TareaViewModel.kt
+deleted file mode 100644
+index 135dfa2..0000000
+--- a/app/src/main/java/com/example/proyectodesdisint/viewmodel/TareaViewModel.kt
++++ /dev/null
+@@ -1,35 +0,0 @@
+-package com.example.proyectodesdisint.viewmodel
+-
+-import androidx.lifecycle.ViewModel
+-import androidx.lifecycle.viewModelScope
+-import com.example.proyectodesdisint.data.TareaRepository
+-import com.example.proyectodesdisint.model.Task
+-import kotlinx.coroutines.launch
+-import androidx.compose.runtime.mutableStateListOf
+-
+-class TareaViewModel : ViewModel() {
+-
+-    private val repo = TareaRepository()
+-
+-    var tareas = mutableStateListOf<Task>()
+-        private set
+-
+-    fun cargarTareas() {
+-        viewModelScope.launch {
+-            tareas.clear()
+-            tareas.addAll(repo.obtenerTareas())
+-        }
+-    }
+-
+-    fun agregarTarea(titulo: String, descripcion: String, fecha: String) {
+-        viewModelScope.launch {
+-            val tarea = Task(
+-                titulo = titulo,
+-                descripcion = descripcion,
+-                fecha = fecha
+-            )
+-            repo.agregarTarea(tarea)
+-            cargarTareas()
+-        }
+-    }
+-}

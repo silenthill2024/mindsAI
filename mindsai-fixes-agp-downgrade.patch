@@ -1,0 +1,11 @@
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index d8800a0..87d4714 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -1,5 +1,5 @@
+ [versions]
+-agp = "8.13.0"
++agp = "8.10.1"
+ coreKtx = "1.17.0"
+ junit = "4.13.2"
+ junitVersion = "1.3.0"

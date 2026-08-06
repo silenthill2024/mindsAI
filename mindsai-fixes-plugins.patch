@@ -1,0 +1,25 @@
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 495c503..46a24ac 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -1 +1,9 @@
+ // Top-level build file where you can add configuration options common to all sub-projects/modules.
++plugins {
++    // Se declaran aquí (con apply false) únicamente para fijar la versión
++    // de estos plugins en el classpath raíz. Los módulos "app" y
++    // "proyectdeswear" los aplican con id(...) sin versión, y Gradle
++    // necesita que la versión quede resuelta desde algún lugar antes.
++    alias(libs.plugins.kotlin.android) apply false
++    alias(libs.plugins.google.services) apply false
++}
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index 84030d3..d8800a0 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -63,4 +63,6 @@ google-android-wearable = { group = "com.google.android.wearable", name = "weara
+ [plugins]
+ android-application = { id = "com.android.application", version.ref = "agp" }
+ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
++kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
++google-services = { id = "com.google.gms.google-services", version = "4.5.0" }
+ 
