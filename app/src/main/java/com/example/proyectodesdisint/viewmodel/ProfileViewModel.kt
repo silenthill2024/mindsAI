@@ -37,15 +37,20 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
         repository.loadProfile(
             onSuccess = { userProfile ->
-                // Priorizar foto local del usuario actual si existe
+                // 1. Obtener la URL de Firestore (Base64 o URL remota)
+                val remotePhotoUrl = userProfile.photoUrl
+                
+                // 2. Intentar obtener el path local si existe en este dispositivo
                 val localPath = localPhotoService.getLocalPhotoPath(userProfile.uid)
-                val profileWithPhoto = if (localPath != null) {
-                    userProfile.copy(photoUrl = localPath)
+                
+                // 3. Priorizar local, pero si no existe o no es válida, usar la remota de Firestore
+                val finalPhotoUrl = if (localPath != null && java.io.File(localPath).exists()) {
+                    localPath
                 } else {
-                    userProfile
+                    remotePhotoUrl
                 }
                 
-                _profile.value = profileWithPhoto
+                _profile.value = userProfile.copy(photoUrl = finalPhotoUrl)
                 _isLoading.value = false
             },
             onFailure = { error ->

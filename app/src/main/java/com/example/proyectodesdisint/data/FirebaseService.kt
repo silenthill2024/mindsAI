@@ -252,4 +252,137 @@ class FirebaseService {
                     continuation.resume(null)
                 }
         }
+
+    // =========================================================
+    // EDICION Y MODERACION DEL BLOG
+    // =========================================================
+
+    fun updateBlogPost(
+        blogId: String,
+        newTitle: String,
+        newContent: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        blogsCollection
+            .document(blogId)
+            .update(
+                mapOf(
+                    "titulo" to newTitle,
+                    "contenido" to newContent
+                )
+            )
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener {
+                onFailure(it)
+            }
+    }
+
+    fun deleteBlogPost(
+        blogId: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        blogsCollection
+            .document(blogId)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener {
+                onFailure(it)
+            }
+    }
+
+    fun updateBlogReply(
+        blogId: String,
+        replyId: String,
+        newText: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        blogsCollection
+            .document(blogId)
+            .collection("replies")
+            .document(replyId)
+            .update(
+                "texto",
+                newText
+            )
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener {
+                onFailure(it)
+            }
+    }
+
+    fun deleteBlogReply(
+        blogId: String,
+        replyId: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        blogsCollection
+            .document(blogId)
+            .collection("replies")
+            .document(replyId)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener {
+                onFailure(it)
+            }
+    }
+
+    fun assignTaskToUser(
+        targetUid: String,
+        task: com.example.proyectodesdisint.model.Task,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (targetUid.isBlank()) {
+            onFailure(
+                IllegalArgumentException(
+                    "ID de usuario destino no valido"
+                )
+            )
+            return
+        }
+
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+        val docRef = db
+            .collection("users")
+            .document(targetUid)
+            .collection("tareas")
+            .document()
+
+        val senderName =
+            com.google.firebase.auth.FirebaseAuth
+                .getInstance()
+                .currentUser
+                ?.displayName
+                ?: "Un usuario"
+
+        val taskWithId = task.copy(
+            documentId = docRef.id,
+            descripcion = (
+                task.descripcion +
+                "\n\n[Asignada por: $senderName]"
+            ).trim()
+        )
+
+        docRef
+            .set(taskWithId)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener {
+                onFailure(it)
+            }
+    }
 }

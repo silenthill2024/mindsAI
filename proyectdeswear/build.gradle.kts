@@ -10,7 +10,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.proyectdeswear"
+        applicationId = "com.example.proyectodesdisint"
         minSdk = 30
         targetSdk = 36
         versionCode = 1
@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation("io.coil-kt:coil-compose:2.7.0")
     implementation(libs.play.services.wearable)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

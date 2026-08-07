@@ -1,6 +1,7 @@
 package com.example.proyectodesdisint.ui.homev4
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.proyectodesdisint.model.Task
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -41,6 +43,7 @@ import java.util.Locale
 @Composable
 fun HomeV4Dashboard(
     tasks: List<Task>,
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
     val stats = remember(tasks) {
@@ -52,7 +55,8 @@ fun HomeV4Dashboard(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         AiCoachSummaryCard(
-            stats = stats
+            stats = stats,
+            onOpenCoach = { navController.navigate("ai_coach") }
         )
 
         DailyProgressCard(
@@ -116,7 +120,8 @@ fun HomeV4Dashboard(
 
 @Composable
 private fun AiCoachSummaryCard(
-    stats: DashboardStats
+    stats: DashboardStats,
+    onOpenCoach: () -> Unit
 ) {
     val message = when {
         stats.pending == 0 -> {
@@ -151,7 +156,8 @@ private fun AiCoachSummaryCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 20.dp)
+            .clickable { onOpenCoach() },
         shape = RoundedCornerShape(28.dp),
         color =
             MaterialTheme.colorScheme.primaryContainer,
@@ -196,7 +202,7 @@ private fun AiCoachSummaryCard(
                     )
 
                     Text(
-                        text = "Análisis académico en tiempo real",
+                        text = "Analizando tu desempeño académico actual.",
                         style =
                             MaterialTheme.typography.bodySmall,
                         color =

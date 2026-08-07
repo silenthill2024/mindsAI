@@ -10,32 +10,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.wear.compose.material.Text
 import com.example.proyectdeswear.presentation.Task
-import com.example.proyectdeswear.presentation.agenda.AgendaScreen
-import com.example.proyectdeswear.presentation.community.CommunityScreen
-import com.example.proyectdeswear.presentation.homepro.components.AcademicIndicator
-import com.example.proyectdeswear.presentation.homepro.components.AcademicProgressRing
-import com.example.proyectdeswear.presentation.homepro.components.HomeBottomNavigation
-import com.example.proyectdeswear.presentation.homepro.components.HomeNavItem
-import com.example.proyectdeswear.presentation.homepro.components.IndicatorType
 import com.example.proyectdeswear.presentation.homepro.components.MindsAIHeader
 import com.example.proyectdeswear.presentation.homepro.components.NeuralBackground
-import com.example.proyectdeswear.presentation.homepro.components.NeuralRecommendationCard
-import com.example.proyectdeswear.presentation.homepro.components.SubjectCards
-import com.example.proyectdeswear.presentation.homepro.components.SubjectSummary
-import com.example.proyectdeswear.presentation.mindsai.MindsAIRecommendationsScreen
-import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun MindsAIProfessionalHome(
@@ -45,177 +34,272 @@ fun MindsAIProfessionalHome(
     onDelete: (Task) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val completed = tasks.count { it.completado }
-    val pending = tasks.count { !it.completado }
 
-    val progress = if (tasks.isEmpty()) {
-        0f
-    } else {
-        completed.toFloat() / tasks.size.toFloat()
-    }
-
-    val recommendation = when {
-        pending >= 7 ->
-            "La red neuronal detecta carga alta. Empieza por la tarea mas urgente."
-
-        pending >= 4 ->
-            "La red neuronal recomienda trabajar en bloques cortos."
-
-        pending > 0 ->
-            "Tu carga esta controlada. Avanza en la siguiente actividad."
-
-        else ->
-            "No tienes pendientes. Aprovecha para descansar."
-    }
-
-    val subjects = listOf(
-        SubjectSummary(
-            title = "Materia",
-            subtitle = "Seminario de IA",
-            progress = 80,
-            color = MindsAIColors.Purple
-        ),
-        SubjectSummary(
-            title = "Materia",
-            subtitle = "Filosofia de la mente",
-            progress = 55,
-            color = MindsAIColors.Cyan
-        ),
-        SubjectSummary(
-            title = "Tesis",
-            subtitle = "Capitulo actual",
-            progress = 40,
-            color = MindsAIColors.Blue
-        )
-    )
-
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { 3 }
-    )
-
-    var selectedNav by remember {
-        mutableStateOf(HomeNavItem.HOME)
-    }
-
-    LaunchedEffect(
-        pagerState.currentPage,
-        selectedNav
-    ) {
-        if (selectedNav == HomeNavItem.HOME) {
-            delay(5_000)
-
-            if (!pagerState.isScrollInProgress) {
-                pagerState.animateScrollToPage(
-                    (pagerState.currentPage + 1) % 3
-                )
-            }
+    val pendingTasks =
+        tasks.filter {
+            !it.completado
         }
-    }
+
+    val pending =
+        pendingTasks.size
+
+    val nextTask =
+        pendingTasks.firstOrNull()
+
+    val currentTime =
+        SimpleDateFormat(
+            "HH:mm",
+            Locale.getDefault()
+        ).format(Date())
+
+    val currentDate =
+        SimpleDateFormat(
+            "EEE d MMM",
+            Locale("es", "MX")
+        ).format(Date())
+            .replaceFirstChar {
+                if (it.isLowerCase()) {
+                    it.titlecase(
+                        Locale("es", "MX")
+                    )
+                } else {
+                    it.toString()
+                }
+            }
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MindsAIColors.Background)
+            .background(
+                MindsAIColors.Background
+            )
     ) {
+
         NeuralBackground(
-            modifier = Modifier.fillMaxSize()
+            modifier =
+                Modifier.fillMaxSize()
         )
 
         Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    horizontal = 18.dp,
+                    vertical = 9.dp
+                ),
+            horizontalAlignment =
+                Alignment.CenterHorizontally
         ) {
-            when (selectedNav) {
-                HomeNavItem.HOME -> {
-                    Spacer(modifier = Modifier.height(13.dp))
 
-                    MindsAIHeader(
-                        notificationCount = notificationCount,
-                        onNotificationsClick = onNotificationsClick
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) { page ->
-                        when (page) {
-                            0 -> {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 25.dp),
-                                    horizontalArrangement =
-                                        Arrangement.SpaceBetween,
-                                    verticalAlignment =
-                                        Alignment.CenterVertically
-                                ) {
-                                    AcademicIndicator(
-                                        title = "Clases",
-                                        value = 80,
-                                        color = MindsAIColors.Purple,
-                                        type = IndicatorType.CLASSES
-                                    )
-
-                                    AcademicProgressRing(
-                                        progress = progress
-                                    )
-
-                                    AcademicIndicator(
-                                        title = "Investigacion",
-                                        value = 20,
-                                        color = MindsAIColors.Cyan,
-                                        type = IndicatorType.RESEARCH
-                                    )
-                                }
-                            }
-
-                            1 -> {
-                                SubjectCards(subjects = subjects)
-                            }
-
-                            2 -> {
-                                NeuralRecommendationCard(
-                                    recommendation = recommendation
-                                )
-                            }
-                        }
-                    }
-                }
-
-                HomeNavItem.AGENDA -> {
-                    AgendaScreen(
-                        tasks = tasks,
-                        onDelete = onDelete,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                HomeNavItem.MINDSAI -> {
-                    MindsAIRecommendationsScreen(
-                        tasks = tasks,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                HomeNavItem.COMMUNITY -> {
-                    CommunityScreen(
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            HomeBottomNavigation(
-                selected = selectedNav,
-                onSelect = { selectedNav = it }
+            MindsAIHeader(
+                notificationCount =
+                    notificationCount,
+                onNotificationsClick =
+                    onNotificationsClick
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(
+                modifier =
+                    Modifier.height(5.dp)
+            )
+
+            Text(
+                text = currentTime,
+                color =
+                    MindsAIColors.TextPrimary,
+                fontSize = 28.sp,
+                fontWeight =
+                    FontWeight.Bold
+            )
+
+            Text(
+                text = currentDate,
+                color =
+                    MindsAIColors.TextSecondary,
+                fontSize = 10.sp
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
+            )
+
+            PendingCard(
+                pending = pending
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(9.dp)
+            )
+
+            if (nextTask != null) {
+
+                Text(
+                    text = "SIGUIENTE",
+                    color =
+                        MindsAIColors.Purple,
+                    fontSize = 8.sp,
+                    fontWeight =
+                        FontWeight.Bold
+                )
+
+                Text(
+                    text = nextTask.titulo,
+                    color =
+                        MindsAIColors.TextPrimary,
+                    fontSize = 12.sp,
+                    fontWeight =
+                        FontWeight.Bold,
+                    textAlign =
+                        TextAlign.Center,
+                    maxLines = 2
+                )
+
+                if (
+                    nextTask.hora.isNotBlank()
+                ) {
+
+                    Text(
+                        text = nextTask.hora,
+                        color =
+                            MindsAIColors.TextSecondary,
+                        fontSize = 9.sp
+                    )
+                }
+
+                Spacer(
+                    modifier =
+                        Modifier.height(8.dp)
+                )
+
+                RecommendationText(
+                    pending = pending
+                )
+
+            } else {
+
+                Spacer(
+                    modifier =
+                        Modifier.height(8.dp)
+                )
+
+                Text(
+                    text = "Todo al dia",
+                    color =
+                        MindsAIColors.TextPrimary,
+                    fontSize = 14.sp,
+                    fontWeight =
+                        FontWeight.Bold
+                )
+
+                Text(
+                    text =
+                        "No tienes tareas pendientes",
+                    color =
+                        MindsAIColors.TextSecondary,
+                    fontSize = 9.sp
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun PendingCard(
+    pending: Int
+) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color =
+                    MindsAIColors.Purple.copy(
+                        alpha = 0.18f
+                    ),
+                shape =
+                    RoundedCornerShape(18.dp)
+            )
+            .padding(
+                vertical = 8.dp,
+                horizontal = 12.dp
+            ),
+        contentAlignment =
+            Alignment.Center
+    ) {
+
+        Row(
+            horizontalArrangement =
+                Arrangement.Center,
+            verticalAlignment =
+                Alignment.CenterVertically
+        ) {
+
+            Text(
+                text =
+                    pending.toString(),
+                color =
+                    MindsAIColors.Purple,
+                fontSize = 19.sp,
+                fontWeight =
+                    FontWeight.Bold
+            )
+
+            Text(
+                text =
+                    if (pending == 1) {
+                        "  tarea pendiente"
+                    } else {
+                        "  tareas pendientes"
+                    },
+                color =
+                    MindsAIColors.TextPrimary,
+                fontSize = 10.sp
+            )
+        }
+    }
+}
+@Composable
+private fun RecommendationText(
+    pending: Int
+) {
+
+    val message =
+        when {
+
+            pending >= 5 ->
+                "Prioriza la tarea mas proxima."
+
+            pending >= 2 ->
+                "Avanza una tarea a la vez."
+
+            else ->
+                "Solo falta una. Tu puedes."
+        }
+
+    Column(
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+
+        Text(
+            text =
+                "MindsAI recomienda",
+            color =
+                MindsAIColors.Purple,
+            fontSize = 8.sp,
+            fontWeight =
+                FontWeight.Bold
+        )
+
+        Text(
+            text = message,
+            color =
+                MindsAIColors.TextSecondary,
+            fontSize = 9.sp,
+            textAlign =
+                TextAlign.Center
+        )
     }
 }

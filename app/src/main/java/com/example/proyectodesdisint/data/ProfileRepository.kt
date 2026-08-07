@@ -21,33 +21,50 @@ class ProfileRepository {
             return
         }
 
+        val uid = firebaseUser.uid
+
+        // 1. Intentar cargar de la nueva colección 'users'
         firestore.collection("users")
-            .document(firebaseUser.uid)
+            .document(uid)
             .get()
             .addOnSuccessListener { document ->
-                val profile = document.toObject(UserProfile::class.java)
-
-                if (profile != null) {
-                    onSuccess(
-                        profile.copy(
-                            uid = firebaseUser.uid,
-                            email = profile.email.ifBlank {
-                                firebaseUser.email.orEmpty()
-                            },
-                            nombre = profile.nombre.ifBlank {
-                                firebaseUser.displayName.orEmpty()
-                            }
-                        )
-                    )
-                } else {
-                    onSuccess(
-                        UserProfile(
-                            uid = firebaseUser.uid,
-                            nombre = firebaseUser.displayName.orEmpty(),
-                            email = firebaseUser.email.orEmpty()
-                        )
-                    )
+                if (document.exists()) {
+                    val profile = document.toObject(UserProfile::class.java)
+                    if (profile != null) {
+                        onSuccess(profile.copy(uid = uid))
+                        return@addOnSuccessListener
+                    }
                 }
+
+                // 2. Si no existe en 'users', buscar en la vieja colección 'usuarios'
+                firestore.collection("usuarios")
+                    .document(uid)
+                    .get()
+                    .addOnSuccessListener { oldDoc ->
+                        if (oldDoc.exists()) {
+                            val oldProfile = oldDoc.toObject(UserProfile::class.java)
+                            if (oldProfile != null) {
+                                // Migrar automáticamente a 'users'
+                                val migratedProfile = oldProfile.copy(uid = uid)
+                                saveProfile(migratedProfile, {}, {})
+                                onSuccess(migratedProfile)
+                                return@addOnSuccessListener
+                            }
+                        }
+
+                        // 3. Si no existe en ninguna, crear perfil base
+                        onSuccess(
+                            UserProfile(
+                                uid = uid,
+                                nombre = firebaseUser.displayName.orEmpty(),
+                                email = firebaseUser.email.orEmpty()
+                            )
+                        )
+                    }
+                    .addOnFailureListener {
+                        // Fallback a perfil base si falla la búsqueda en 'usuarios'
+                        onSuccess(UserProfile(uid = uid, email = firebaseUser.email.orEmpty()))
+                    }
             }
             .addOnFailureListener(onFailure)
     }

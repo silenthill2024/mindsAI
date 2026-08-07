@@ -4,6 +4,9 @@ import android.app.Application
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Book
@@ -22,10 +26,14 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -87,6 +95,8 @@ fun ProfileScreen(
     var objetivos by remember { mutableStateOf("") }
     var github by remember { mutableStateOf("") }
     var linkedin by remember { mutableStateOf("") }
+
+    var showAcademicDetails by remember { mutableStateOf(false) }
 
     LaunchedEffect(savedProfile) {
         if (
@@ -247,6 +257,18 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(text = if (ciudad.isNotBlank()) ciudad else "México, MX", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                         }
+                        if (savedProfile.role.uppercase() != "PROFE") {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.School, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (savedProfile.asesorias.isNotEmpty()) "Tutor: ${savedProfile.asesorias.first()}" else "Sin Asesoría",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
 
                     // Level Badge
@@ -281,6 +303,20 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Navigation Button to Tasks (Move above stats)
+            Button(
+                onClick = { navController.navigate("tasks") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(Icons.Default.Assignment, null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Gestionar mis Tareas", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             // Stats Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -288,31 +324,31 @@ fun ProfileScreen(
             ) {
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Default.Book,
-                    value = "${savedProfile.materiasCount}",
-                    label = "Materias",
+                    icon = if (savedProfile.role.uppercase() == "PROFE") Icons.Default.People else Icons.Default.Book,
+                    value = if (savedProfile.role.uppercase() == "PROFE") "${savedProfile.asesorias.size}" else "${savedProfile.materiasCount}",
+                    label = if (savedProfile.role.uppercase() == "PROFE") "Alumnos" else "Materias",
                     color = Color(0xFF9C27B0)
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Default.CheckCircle,
-                    value = "${savedProfile.tareasCompletadas}",
-                    label = "Tareas\ncompletadas",
+                    icon = if (savedProfile.role.uppercase() == "PROFE") Icons.Default.Assignment else Icons.Default.CheckCircle,
+                    value = if (savedProfile.role.uppercase() == "PROFE") "${savedProfile.materiasCount}" else "${savedProfile.tareasCompletadas}",
+                    label = if (savedProfile.role.uppercase() == "PROFE") "Materiales" else "Tareas",
                     color = Color(0xFF4CAF50),
-                    onClick = { navController.navigate("tasks") }
+                    onClick = { if (savedProfile.role.uppercase() != "PROFE") navController.navigate("tasks") }
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.Schedule,
-                    value = "${savedProfile.horasEstudio}h",
-                    label = "Horas de\nestudio",
+                    value = if (savedProfile.role.uppercase() == "PROFE") "Tutor" else "${savedProfile.horasEstudio}h",
+                    label = if (savedProfile.role.uppercase() == "PROFE") "Rol" else "Horas",
                     color = Color(0xFFFF9800)
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.TrendingUp,
-                    value = "${savedProfile.promedioGeneral}",
-                    label = "Promedio\ngeneral",
+                    value = if (savedProfile.role.uppercase() == "PROFE") "4.9" else "${savedProfile.promedioGeneral}",
+                    label = if (savedProfile.role.uppercase() == "PROFE") "Rating" else "Promedio",
                     color = Color(0xFF2196F3)
                 )
             }
@@ -354,295 +390,320 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Navigation Button to Tasks
-            Button(
-                onClick = { navController.navigate("tasks") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Icon(Icons.Default.Assignment, null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Ir a mis Tareas de Hoy", fontWeight = FontWeight.Bold)
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            ProfileSection(title = "Información académica") {
-                ProfileField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = "Nombre completo"
-                )
-
-                ProfileField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = "Nombre de usuario",
-                    placeholder = "@usuario"
-                )
-
-                ProfileField(
-                    value = ciudad,
-                    onValueChange = { ciudad = it },
-                    label = "Ciudad"
-                )
-
-                ProfileField(
-                    value = biografia,
-                    onValueChange = {
-                        if (it.length <= 300) {
-                            biografia = it
-                        }
-                    },
-                    label = "Biografía",
-                    placeholder =
-                        "Describe tus intereses y metas académicas",
-                    singleLine = false,
-                    minLines = 3,
-                    supportingText =
-                        "${biografia.length}/300 caracteres"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileSection(title = "Información académica") {
-                ProfileField(
-                    value = universidad,
-                    onValueChange = { universidad = it },
-                    label = "Universidad"
-                )
-
-                ProfileField(
-                    value = carrera,
-                    onValueChange = { carrera = it },
-                    label = "Carrera"
-                )
-
-                StudyLevelSelector(
-                    selectedLevel = gradoEstudio,
-                    onLevelSelected = { gradoEstudio = it }
-                )
-
-                ProfileField(
-                    value = semestre,
-                    onValueChange = { semestre = it },
-                    label = "Cuatrimestre o semestre"
-                )
-
-                ProfileField(
-                    value = grupo,
-                    onValueChange = { grupo = it },
-                    label = "Grupo"
-                )
-
-                ProfileField(
-                    value = matricula,
-                    onValueChange = { matricula = it },
-                    label = "Matrícula"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileSection(title = "Intereses y materias") {
-                ProfileField(
-                    value = materiasInteres,
-                    onValueChange = { materiasInteres = it },
-                    label = "Materias de interés",
-                    placeholder = "IA, Android, Python, Bases de datos",
-                    singleLine = false,
-                    minLines = 2,
-                    supportingText =
-                        "Separa cada elemento con una coma"
-                )
-
-                ProfileField(
-                    value = materiasActuales,
-                    onValueChange = { materiasActuales = it },
-                    label = "Materias actuales",
-                    placeholder =
-                        "Desarrollo móvil, IA, Redes",
-                    singleLine = false,
-                    minLines = 2,
-                    supportingText =
-                        "Separa cada elemento con una coma"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileSection(title = "Asesorías y objetivos") {
-                ProfileField(
-                    value = asesorias,
-                    onValueChange = { asesorias = it },
-                    label = "Asesorías que cursas",
-                    placeholder =
-                        "Matemáticas martes 5 PM, Android jueves 6 PM",
-                    singleLine = false,
-                    minLines = 2,
-                    supportingText =
-                        "Separa cada asesoría con una coma"
-                )
-
-                ProfileField(
-                    value = objetivos,
-                    onValueChange = { objetivos = it },
-                    label = "Objetivos académicos",
-                    placeholder =
-                        "Graduarme, aprender IA, conseguir estadías",
-                    singleLine = false,
-                    minLines = 2,
-                    supportingText =
-                        "Separa cada objetivo con una coma"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileSection(title = "Perfil profesional") {
-                ProfileField(
-                    value = github,
-                    onValueChange = { github = it },
-                    label = "GitHub",
-                    placeholder = "github.com/usuario"
-                )
-
-                ProfileField(
-                    value = linkedin,
-                    onValueChange = { linkedin = it },
-                    label = "LinkedIn",
-                    placeholder = "linkedin.com/in/usuario"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileSection(title = "Configuración") {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement =
-                        Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            if (savedProfile.role.uppercase() != "PROFE") {
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
-                    Row(
-                        verticalAlignment =
-                            Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector =
-                                if (ThemeState.isDarkTheme) {
-                                    Icons.Default.DarkMode
-                                } else {
-                                    Icons.Default.LightMode
-                                },
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Text("Modo oscuro")
-                    }
-
-                    Switch(
-                        checked = ThemeState.isDarkTheme,
-                        onCheckedChange = {
-                            ThemeState.isDarkTheme = it
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.School, null, tint = MaterialTheme.colorScheme.secondary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Estatus de Asesorías",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
                         }
-                    )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        val tutoriasList = savedProfile.asesorias
+                        if (tutoriasList.isEmpty()) {
+                            Text(
+                                "Actualmente no cuentas con asesorías activas.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        } else {
+                            tutoriasList.forEach { asesoria ->
+                                Row(
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(16.dp), tint = Color(0xFF4CAF50))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(asesoria, style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = {
-                    val profile = UserProfile(
-                        uid = savedProfile.uid,
-                        nombre = nombre.trim(),
-                        username = username.trim(),
-                        email = savedProfile.email,
-                        universidad = universidad.trim(),
-                        carrera = carrera.trim(),
-                        gradoEstudio = gradoEstudio,
-                        semestre = semestre.trim(),
-                        grupo = grupo.trim(),
-                        matricula = matricula.trim(),
-                        ciudad = ciudad.trim(),
-                        biografia = biografia.trim(),
-                        materiasInteres =
-                            textToList(materiasInteres),
-                        materiasActuales =
-                            textToList(materiasActuales),
-                        asesorias = textToList(asesorias),
-                        objetivos = textToList(objetivos),
-                        github = github.trim(),
-                        linkedin = linkedin.trim(),
-                        photoUrl = savedProfile.photoUrl,
-                        perfilCompleto =
-                            savedProfile.perfilCompleto
-                    )
-
-                    profileViewModel.saveProfile(profile)
-                },
-                enabled = initialized && !isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp),
-                shape = RoundedCornerShape(14.dp)
+            // Action Buttons Section
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Save,
-                    contentDescription = null
-                )
+                // Save Profile Button
+                Button(
+                    onClick = {
+                        val profile = UserProfile(
+                            uid = savedProfile.uid,
+                            nombre = nombre.trim(),
+                            username = username.trim(),
+                            email = savedProfile.email,
+                            universidad = universidad.trim(),
+                            carrera = carrera.trim(),
+                            gradoEstudio = gradoEstudio,
+                            semestre = semestre.trim(),
+                            grupo = grupo.trim(),
+                            matricula = matricula.trim(),
+                            ciudad = ciudad.trim(),
+                            biografia = biografia.trim(),
+                            materiasInteres = textToList(materiasInteres),
+                            materiasActuales = textToList(materiasActuales),
+                            asesorias = textToList(asesorias),
+                            objetivos = textToList(objetivos),
+                            github = github.trim(),
+                            linkedin = linkedin.trim(),
+                            photoUrl = savedProfile.photoUrl,
+                            perfilCompleto = savedProfile.perfilCompleto,
+                            role = savedProfile.role // Preserve role
+                        )
+                        profileViewModel.saveProfile(profile)
+                    },
+                    enabled = initialized && !isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Save, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (isLoading) "Guardando..." else "Guardar Cambios", fontWeight = FontWeight.Bold)
+                }
 
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    if (isLoading) {
-                        "Guardando..."
-                    } else {
-                        "Guardar perfil"
-                    }
-                )
+                // Academic Info Toggle
+                OutlinedButton(
+                    onClick = { showAcademicDetails = !showAcademicDetails },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(if (showAcademicDetails) Icons.Default.Edit else Icons.Default.AccountCircle, null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (showAcademicDetails) "Finalizar Edición" else "Modificar mis Datos", fontWeight = FontWeight.Bold)
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            AnimatedVisibility(
+                visible = showAcademicDetails,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ProfileSection(title = "Información Personal") {
+                        ProfileField(
+                            value = nombre,
+                            onValueChange = { nombre = it },
+                            label = "Nombre completo"
+                        )
+
+                        ProfileField(
+                            value = username,
+                            onValueChange = { username = it },
+                            label = "Nombre de usuario",
+                            placeholder = "@usuario"
+                        )
+
+                        ProfileField(
+                            value = ciudad,
+                            onValueChange = { ciudad = it },
+                            label = "Ciudad"
+                        )
+
+                        ProfileField(
+                            value = biografia,
+                            onValueChange = { if (it.length <= 300) biografia = it },
+                            label = "Biografía",
+                            placeholder = "Describe tus intereses y metas académicas",
+                            singleLine = false,
+                            minLines = 3,
+                            supportingText = "${biografia.length}/300 caracteres"
+                        )
+                    }
+
+                    ProfileSection(title = "Información Académica") {
+                        ProfileField(
+                            value = universidad,
+                            onValueChange = { universidad = it },
+                            label = "Universidad"
+                        )
+
+                        ProfileField(
+                            value = carrera,
+                            onValueChange = { carrera = it },
+                            label = "Carrera"
+                        )
+                        
+                        if (savedProfile.role.uppercase() != "PROFE") {
+                            ProfileField(
+                                value = asesorias,
+                                onValueChange = { asesorias = it },
+                                label = "Tutor o Asesorías actuales",
+                                placeholder = "Ej: Matemáticas con Prof. Ruiz"
+                            )
+                        }
+
+                        StudyLevelSelector(
+                            selectedLevel = gradoEstudio,
+                            onLevelSelected = { gradoEstudio = it }
+                        )
+
+                        ProfileField(
+                            value = semestre,
+                            onValueChange = { semestre = it },
+                            label = "Cuatrimestre o semestre"
+                        )
+
+                        ProfileField(
+                            value = grupo,
+                            onValueChange = { grupo = it },
+                            label = "Grupo"
+                        )
+
+                        ProfileField(
+                            value = matricula,
+                            onValueChange = { matricula = it },
+                            label = "Matrícula"
+                        )
+                    }
+
+                    ProfileSection(title = "Intereses y materias") {
+                        ProfileField(
+                            value = materiasInteres,
+                            onValueChange = { materiasInteres = it },
+                            label = "Materias de interés",
+                            placeholder = "IA, Android, Python, Bases de datos",
+                            singleLine = false,
+                            minLines = 2,
+                            supportingText = "Separa cada elemento con una coma"
+                        )
+
+                        ProfileField(
+                            value = materiasActuales,
+                            onValueChange = { materiasActuales = it },
+                            label = "Materias actuales",
+                            placeholder = "Desarrollo móvil, IA, Redes",
+                            singleLine = false,
+                            minLines = 2,
+                            supportingText = "Separa cada elemento con una coma"
+                        )
+                    }
+
+                    ProfileSection(title = "Asesorías y objetivos") {
+                        ProfileField(
+                            value = asesorias,
+                            onValueChange = { asesorias = it },
+                            label = "Asesorías que cursas",
+                            placeholder = "Matemáticas martes 5 PM, Android jueves 6 PM",
+                            singleLine = false,
+                            minLines = 2,
+                            supportingText = "Separa cada asesoría con una coma"
+                        )
+
+                        ProfileField(
+                            value = objetivos,
+                            onValueChange = { objetivos = it },
+                            label = "Objetivos académicos",
+                            placeholder = "Graduarme, aprender IA, conseguir estadías",
+                            singleLine = false,
+                            minLines = 2,
+                            supportingText = "Separa cada objetivo con una coma"
+                        )
+                    }
+
+                    ProfileSection(title = "Perfil profesional") {
+                        ProfileField(
+                            value = github,
+                            onValueChange = { github = it },
+                            label = "GitHub",
+                            placeholder = "github.com/usuario"
+                        )
+
+                        ProfileField(
+                            value = linkedin,
+                            onValueChange = { linkedin = it },
+                            label = "LinkedIn",
+                            placeholder = "linkedin.com/in/usuario"
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ProfileSection(title = "Configuración") {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = if (ThemeState.isDarkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Modo oscuro")
+                    }
+                    Switch(checked = ThemeState.isDarkTheme, onCheckedChange = { ThemeState.isDarkTheme = it })
+                }
+
+                // Admin/Professor Panel moved here
+                val userRole = savedProfile.role.uppercase()
+                val isAdminOrProfe = userRole == "ADMIN" || userRole == "PROFE" || savedProfile.email == "admin@mindsai.com"
+                
+                if (isAdminOrProfe) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                    
+                    TextButton(
+                        onClick = { navController.navigate("admin_panel") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = if (userRole == "ADMIN" || savedProfile.email == "admin@mindsai.com") 
+                                MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (userRole == "ADMIN" || savedProfile.email == "admin@mindsai.com") Icons.Default.Security else Icons.Default.Settings, 
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            if (userRole == "ADMIN" || savedProfile.email == "admin@mindsai.com") "Panel de Administración" else "Panel de Profesor",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedButton(
                 onClick = {
                     authViewModel.logout()
-
-                    navController.navigate("login") {
-                        popUpTo("home") {
-                            inclusive = true
-                        }
-                    }
+                    navController.navigate("login") { popUpTo("home") { inclusive = true } }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp),
+                modifier = Modifier.fillMaxWidth().height(55.dp),
                 shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor =
-                        MaterialTheme.colorScheme.error
-                )
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) {
-                Icon(
-                    imageVector =
-                        Icons.AutoMirrored.Filled.Logout,
-                    contentDescription = null
-                )
-
+                Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-
-                Text("Cerrar sesión")
+                Text("Cerrar sesión", fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(100.dp))

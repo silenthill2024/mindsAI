@@ -6,7 +6,8 @@ data class BlogPost(
     val contenido: String = "",
     val fecha: Long = System.currentTimeMillis(),
     val autor: String = "Usuario MindsAI",
-    val autorID: String = ""
+    val autorID: String = "",
+    val autorPhotoUrl: String = ""
 )
 
 data class BlogReply(
@@ -14,5 +15,6 @@ data class BlogReply(
     val texto: String = "",
     val autor: String = "MindsAI Assistant",
     val fecha: Long = System.currentTimeMillis(),
-    val autorID: String = ""
+    val autorID: String = "",
+    val autorPhotoUrl: String = ""
 )

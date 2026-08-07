@@ -18,7 +18,7 @@ class StreamingClient(
     fun connect() {
 
         val request = Request.Builder()
-            .url("ws://127.0.0.1:3000/stream")
+            .url("ws://192.168.100.2:3000/stream")
             .build()
 
         webSocket = client.newWebSocket(
