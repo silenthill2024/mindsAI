@@ -31,7 +31,7 @@ object SuggestionEngine {
         }
 
         return if (neuralRecommendation != null) {
-            "La red neuronal recomienda trabajar en la ${neuralRecommendation.period.label} alrededor de las ${neuralRecommendation.hour}:00. Empieza con: ${nextTask.titulo}"
+            "(DEMO) La red neuronal recomienda trabajar en la ${neuralRecommendation.period.label} alrededor de las ${neuralRecommendation.hour}:00. Empieza con: ${nextTask.titulo}"
         } else {
             "Te recomiendo empezar con: ${nextTask.titulo}"
         }
@@ -39,10 +39,10 @@ object SuggestionEngine {
 
     fun recommendBestHour(tasks: List<Task>): String {
         val neuralRecommendation = getNeuralRecommendation(tasks)
-            ?: return "Sin suficiente historial aun para entrenar la red neuronal"
+            ?: return "Sin suficiente historial aun para entrenar la red neuronal (DEMO)"
 
         val confidence = (neuralRecommendation.confidence * 100).roundToInt()
-        return "La red neuronal recomienda trabajar en la ${neuralRecommendation.period.label} alrededor de las ${neuralRecommendation.hour}:00 (confianza ${confidence}%)"
+        return "(DEMO) La red neuronal recomienda trabajar en la ${neuralRecommendation.period.label} alrededor de las ${neuralRecommendation.hour}:00 (confianza ${confidence}%)"
     }
 
     private fun getNeuralRecommendation(tasks: List<Task>): NeuralRecommendation? {

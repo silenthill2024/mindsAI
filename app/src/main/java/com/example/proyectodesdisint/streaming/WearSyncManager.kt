@@ -11,6 +11,16 @@ class WearSyncManager(
     private val nodeClient = Wearable.getNodeClient(context)
     private val messageClient = Wearable.getMessageClient(context)
 
+    fun syncUserSession(uid: String) {
+        val json = """
+            {
+              "type": "USER_SESSION",
+              "data": { "uid": "$uid" }
+            }
+        """.trimIndent()
+        sendEventToWatch(json, "/stream_event")
+    }
+
     fun sendEventToWatch(
         json: String,
         path: String = "/stream_event"

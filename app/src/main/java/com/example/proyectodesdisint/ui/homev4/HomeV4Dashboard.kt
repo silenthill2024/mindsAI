@@ -186,7 +186,7 @@ private fun AiCoachSummaryCard(
 
                 Column {
                     Text(
-                        text = "Coach IA",
+                        text = "Coach IA (DEMO)",
                         style =
                             MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
@@ -196,7 +196,7 @@ private fun AiCoachSummaryCard(
                     )
 
                     Text(
-                        text = "Análisis académico en tiempo real",
+                        text = "Análisis académico (PRÓXIMAMENTE)",
                         style =
                             MaterialTheme.typography.bodySmall,
                         color =

@@ -5,7 +5,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Security
@@ -17,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.proyectodesdisint.data.FirebaseService
+import com.example.proyectodesdisint.model.Task
 import com.example.proyectodesdisint.model.UserProfile
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -29,6 +33,10 @@ fun AdminPanelScreen(navController: NavController) {
     var currentUserProfile by remember { mutableStateOf<UserProfile?>(null) }
     var users by remember { mutableStateOf<List<UserProfile>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    
+    // Estado para el diálogo de asignar tarea
+    var showAssignDialog by remember { mutableStateOf(false) }
+    var selectedUserForTask by remember { mutableStateOf<UserProfile?>(null) }
 
     LaunchedEffect(Unit) {
         user?.let {
@@ -73,18 +81,41 @@ fun AdminPanelScreen(navController: NavController) {
                     UserAdminCard(
                         user = user, 
                         canEdit = currentUserProfile?.isAdmin == true,
+                        isProfeOrAdmin = currentUserProfile?.role?.uppercase() == "ADMIN" || currentUserProfile?.role?.uppercase() == "PROFE",
                         onRoleChange = { newRole ->
                             db.collection("users").document(user.uid).update("role", newRole)
+                        },
+                        onAssignTask = {
+                            selectedUserForTask = user
+                            showAssignDialog = true
                         }
                     )
                 }
             }
         }
     }
+
+    if (showAssignDialog && selectedUserForTask != null) {
+        AssignTaskDialog(
+            targetUser = selectedUserForTask!!,
+            onDismiss = { showAssignDialog = false },
+            onConfirm = { task ->
+                val service = FirebaseService()
+                service.assignTaskToUser(selectedUserForTask!!.uid, task)
+                showAssignDialog = false
+            }
+        )
+    }
 }
 
 @Composable
-fun UserAdminCard(user: UserProfile, canEdit: Boolean, onRoleChange: (String) -> Unit) {
+fun UserAdminCard(
+    user: UserProfile, 
+    canEdit: Boolean, 
+    isProfeOrAdmin: Boolean,
+    onRoleChange: (String) -> Unit,
+    onAssignTask: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -116,11 +147,51 @@ fun UserAdminCard(user: UserProfile, canEdit: Boolean, onRoleChange: (String) ->
                 }
             }
             
-            Icon(
-                imageVector = if (user.role.uppercase() == "ADMIN") Icons.Default.Security else Icons.Default.People,
-                contentDescription = null,
-                tint = if (user.role.uppercase() == "ADMIN") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Botón para que el PROFESOR asigne tarea
+                if (isProfeOrAdmin) {
+                    IconButton(onClick = onAssignTask) {
+                        Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = "Asignar Tarea", tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                
+                Icon(
+                    imageVector = if (user.role.uppercase() == "ADMIN") Icons.Default.Security else Icons.Default.People,
+                    contentDescription = null,
+                    tint = if (user.role.uppercase() == "ADMIN") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
+}
+
+@Composable
+fun AssignTaskDialog(
+    targetUser: UserProfile,
+    onDismiss: () -> Unit,
+    onConfirm: (Task) -> Unit
+) {
+    var titulo by remember { mutableStateOf("") }
+    var desc by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Asignar Tarea a ${targetUser.nombre}") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Instrucciones") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (titulo.isNotBlank()) {
+                        onConfirm(Task(titulo = titulo, descripcion = desc))
+                    }
+                }
+            ) { Text("Asignar") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+    )
 }

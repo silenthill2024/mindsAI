@@ -151,7 +151,7 @@ fun AiCoachBubble(
 
                             Column {
                                 Text(
-                                    text = "Coach MindsAI",
+                                    text = "Coach MindsAI (DEMO)",
                                     fontWeight =
                                         FontWeight.Bold,
                                     color =
@@ -161,7 +161,7 @@ fun AiCoachBubble(
                                 )
 
                                 Text(
-                                    text = "Asistente académico",
+                                    text = "Asistente académico (PRÓXIMAMENTE)",
                                     style =
                                         MaterialTheme
                                             .typography
@@ -243,7 +243,7 @@ fun AiCoachBubble(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = {
                             Text(
-                                "Pregúntame sobre tus tareas"
+                                "Consultas básicas (DEMO)"
                             )
                         },
                         singleLine = true,

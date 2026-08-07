@@ -15,6 +15,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -56,9 +57,16 @@ fun AppNavigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val wearSyncManager = remember {
+        com.example.proyectodesdisint.streaming.WearSyncManager(context)
+    }
+
     // Sincronizar el perfil cuando cambie el usuario o la pantalla
     androidx.compose.runtime.LaunchedEffect(user, currentRoute) {
         profileViewModel.loadProfile()
+        user?.uid?.let { uid ->
+            wearSyncManager.syncUserSession(uid)
+        }
     }
 
     val mainRoutes = setOf(

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
@@ -308,31 +309,31 @@ fun ProfileScreen(
             ) {
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Default.Book,
-                    value = "${savedProfile.materiasCount}",
-                    label = "Materias",
+                    icon = if (savedProfile.role.uppercase() == "PROFE") Icons.Default.People else Icons.Default.Book,
+                    value = if (savedProfile.role.uppercase() == "PROFE") "${savedProfile.asesorias.size}" else "${savedProfile.materiasCount}",
+                    label = if (savedProfile.role.uppercase() == "PROFE") "Alumnos" else "Materias",
                     color = Color(0xFF9C27B0)
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Default.CheckCircle,
-                    value = "${savedProfile.tareasCompletadas}",
-                    label = "Tareas\ncompletadas",
+                    icon = if (savedProfile.role.uppercase() == "PROFE") Icons.Default.Assignment else Icons.Default.CheckCircle,
+                    value = if (savedProfile.role.uppercase() == "PROFE") "${savedProfile.materiasCount}" else "${savedProfile.tareasCompletadas}",
+                    label = if (savedProfile.role.uppercase() == "PROFE") "Materiales" else "Tareas",
                     color = Color(0xFF4CAF50),
-                    onClick = { navController.navigate("tasks") }
+                    onClick = { if (savedProfile.role.uppercase() != "PROFE") navController.navigate("tasks") }
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.Schedule,
-                    value = "${savedProfile.horasEstudio}h",
-                    label = "Horas de\nestudio",
+                    value = if (savedProfile.role.uppercase() == "PROFE") "Tutor" else "${savedProfile.horasEstudio}h",
+                    label = if (savedProfile.role.uppercase() == "PROFE") "Rol" else "Horas",
                     color = Color(0xFFFF9800)
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.TrendingUp,
-                    value = "${savedProfile.promedioGeneral}",
-                    label = "Promedio\ngeneral",
+                    value = if (savedProfile.role.uppercase() == "PROFE") "4.9" else "${savedProfile.promedioGeneral}",
+                    label = if (savedProfile.role.uppercase() == "PROFE") "Rating" else "Promedio",
                     color = Color(0xFF2196F3)
                 )
             }

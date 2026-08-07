@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -159,7 +160,20 @@ fun BlogFirebaseItemView(
     var expanded by remember { mutableStateOf(false) }
     var replies by remember { mutableStateOf(listOf<BlogReply>()) }
     var replyText by remember { mutableStateOf("") }
+    
+    // Edición de Post
+    var showEditPostDialog by remember { mutableStateOf(false) }
+    var editTitle by remember { mutableStateOf(blog.titulo) }
+    var editContent by remember { mutableStateOf(blog.contenido) }
+    
+    // Edición de Comentario
+    var showEditReplyDialog by remember { mutableStateOf(false) }
+    var selectedReplyId by remember { mutableStateOf("") }
+    var editReplyText by remember { mutableStateOf("") }
+
     val user = FirebaseAuth.getInstance().currentUser
+    val isAuthor = user?.uid == blog.autorID
+    val isAdmin = currentUserRole == "ADMIN"
 
     // Load replies immediately to show count
     LaunchedEffect(blog.id) {
@@ -185,7 +199,7 @@ fun BlogFirebaseItemView(
                 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(blog.titulo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -201,6 +215,17 @@ fun BlogFirebaseItemView(
                         )
                     }
                 }
+
+                if (isAuthor || isAdmin) {
+                    Row {
+                        IconButton(onClick = { showEditPostDialog = true }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Editar post", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
+                        }
+                        IconButton(onClick = { service.deleteBlogPost(blog.id) }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar post", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
             }
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -213,23 +238,14 @@ fun BlogFirebaseItemView(
                 Icon(Icons.Default.ChatBubbleOutline, null, modifier = Modifier.size(16.dp), tint = Color.Gray)
                 Spacer(Modifier.width(4.dp))
                 Text("${replies.size} Comentarios", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-
-                if (currentUserRole == "ADMIN") {
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = {
-                        // Delete post logic
-                        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                        db.collection("blogs").document(blog.id).delete()
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Eliminar post", tint = MaterialTheme.colorScheme.error)
-                    }
-                }
             }
 
             if (expanded) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
                 
                 replies.forEach { reply ->
+                    val isReplyAuthor = user?.uid == reply.autorID
+                    
                     Row(
                         modifier = Modifier.padding(bottom = 12.dp),
                         verticalAlignment = Alignment.Top
@@ -247,12 +263,18 @@ fun BlogFirebaseItemView(
                             Text(reply.texto, style = MaterialTheme.typography.bodySmall)
                         }
 
-                        if (currentUserRole == "ADMIN") {
-                            IconButton(onClick = {
-                                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                                db.collection("blogs").document(blog.id).collection("replies").document(reply.id).delete()
-                            }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar respuesta", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                        if (isReplyAuthor || isAdmin) {
+                            Row {
+                                IconButton(onClick = { 
+                                    selectedReplyId = reply.id
+                                    editReplyText = reply.texto
+                                    showEditReplyDialog = true 
+                                }) {
+                                    Icon(Icons.Default.Edit, contentDescription = "Editar respuesta", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                                }
+                                IconButton(onClick = { service.deleteBlogReply(blog.id, reply.id) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Eliminar respuesta", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                                }
                             }
                         }
                     }
@@ -286,5 +308,43 @@ fun BlogFirebaseItemView(
                 }
             }
         }
+    }
+
+    // Diálogos de Edición
+    if (showEditPostDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditPostDialog = false },
+            title = { Text("Editar Publicación") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(value = editTitle, onValueChange = { editTitle = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = editContent, onValueChange = { editContent = it }, label = { Text("Contenido") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    service.updateBlogPost(blog.id, editTitle, editContent)
+                    showEditPostDialog = false
+                }) { Text("Guardar") }
+            },
+            dismissButton = { TextButton(onClick = { showEditPostDialog = false }) { Text("Cancelar") } }
+        )
+    }
+
+    if (showEditReplyDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditReplyDialog = false },
+            title = { Text("Editar Comentario") },
+            text = {
+                OutlinedTextField(value = editReplyText, onValueChange = { editReplyText = it }, label = { Text("Comentario") }, modifier = Modifier.fillMaxWidth())
+            },
+            confirmButton = {
+                Button(onClick = {
+                    service.updateBlogReply(blog.id, selectedReplyId, editReplyText)
+                    showEditReplyDialog = false
+                }) { Text("Guardar") }
+            },
+            dismissButton = { TextButton(onClick = { showEditReplyDialog = false }) { Text("Cancelar") } }
+        )
     }
 }
