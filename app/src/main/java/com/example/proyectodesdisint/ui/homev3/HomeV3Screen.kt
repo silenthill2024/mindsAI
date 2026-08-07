@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Task
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -231,6 +232,9 @@ private fun HomeV3Header(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                WeatherWidget()
+                Spacer(Modifier.width(16.dp))
+                
                 if (role == "ADMIN") {
                     IconButton(onClick = onToggleAdminView) {
                         Icon(
@@ -257,6 +261,41 @@ private fun HomeV3Header(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun WeatherWidget() {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)),
+        modifier = Modifier.padding(vertical = 4.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "24°C",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Soleado",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Default.WbSunny,
+                contentDescription = null,
+                tint = Color(0xFFFFB300),
+                modifier = Modifier.size(28.dp)
+            )
         }
     }
 }

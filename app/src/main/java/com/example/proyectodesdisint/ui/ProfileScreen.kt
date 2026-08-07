@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Book
@@ -28,9 +29,11 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -254,6 +257,18 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(text = if (ciudad.isNotBlank()) ciudad else "México, MX", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                         }
+                        if (savedProfile.role.uppercase() != "PROFE") {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.School, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (savedProfile.asesorias.isNotEmpty()) "Tutor: ${savedProfile.asesorias.first()}" else "Sin Asesoría",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
 
                     // Level Badge
@@ -375,6 +390,52 @@ fun ProfileScreen(
                 }
             }
 
+            if (savedProfile.role.uppercase() != "PROFE") {
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.School, null, tint = MaterialTheme.colorScheme.secondary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Estatus de Asesorías",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        val tutoriasList = savedProfile.asesorias
+                        if (tutoriasList.isEmpty()) {
+                            Text(
+                                "Actualmente no cuentas con asesorías activas.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        } else {
+                            tutoriasList.forEach { asesoria ->
+                                Row(
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(16.dp), tint = Color(0xFF4CAF50))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(asesoria, style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // Action Buttons Section
@@ -482,6 +543,15 @@ fun ProfileScreen(
                             onValueChange = { carrera = it },
                             label = "Carrera"
                         )
+                        
+                        if (savedProfile.role.uppercase() != "PROFE") {
+                            ProfileField(
+                                value = asesorias,
+                                onValueChange = { asesorias = it },
+                                label = "Tutor o Asesorías actuales",
+                                placeholder = "Ej: Matemáticas con Prof. Ruiz"
+                            )
+                        }
 
                         StudyLevelSelector(
                             selectedLevel = gradoEstudio,
