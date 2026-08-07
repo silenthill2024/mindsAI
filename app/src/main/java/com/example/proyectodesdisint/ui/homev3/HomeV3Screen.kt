@@ -59,6 +59,16 @@ fun HomeV3Screen(
         factory = com.example.proyectodesdisint.viewmodel.ProfileViewModelFactory(context.applicationContext as android.app.Application)
     )
     val profile by profileViewModel.profile.collectAsState()
+
+    // Clima real
+    var weatherData by remember { mutableStateOf<com.example.proyectodesdisint.data.WeatherData?>(null) }
+    LaunchedEffect(profile.ciudad) {
+        // Por ahora usamos coordenadas fijas de Guadalajara si la ciudad es GDL, o CDMX como default
+        val lat = if (profile.ciudad.contains("Guadalajara", true)) 20.6597 else 19.4326
+        val lon = if (profile.ciudad.contains("Guadalajara", true)) -103.3496 else -99.1332
+        weatherData = com.example.proyectodesdisint.data.WeatherService.fetchWeather(lat, lon)
+    }
+
     val userRole = profile.role.uppercase()
 
     // Estado para Admin: cambiar entre vista de Alumno y Profesor
@@ -106,6 +116,7 @@ fun HomeV3Screen(
                     activeRole = activeRole,
                     viewAsProfe = adminViewAsProfe,
                     pendingTasks = tasks.count { !it.completado },
+                    weatherData = weatherData,
                     onViewTasks = { navController.navigate("tasks") },
                     onToggleAdminView = { adminViewAsProfe = !adminViewAsProfe }
                 )
@@ -166,7 +177,7 @@ fun HomeV3Screen(
 
             } else {
                 // VISTA PARA ALUMNO (O ADMIN EN MODO ALUMNO)
-                item { HomeV4Dashboard(tasks = tasks) }
+                item { HomeV4Dashboard(tasks = tasks, navController = navController) }
                 item { YouTubeSection(videos = recommendedVideos) }
                 item { 
                     DailyOverviewCard(
@@ -204,6 +215,7 @@ private fun HomeV3Header(
     activeRole: String,
     viewAsProfe: Boolean,
     pendingTasks: Int,
+    weatherData: com.example.proyectodesdisint.data.WeatherData?,
     onViewTasks: () -> Unit,
     onToggleAdminView: () -> Unit
 ) {
@@ -232,7 +244,7 @@ private fun HomeV3Header(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                WeatherWidget()
+                WeatherWidget(weatherData)
                 Spacer(Modifier.width(16.dp))
                 
                 if (role == "ADMIN") {
@@ -266,7 +278,7 @@ private fun HomeV3Header(
 }
 
 @Composable
-private fun WeatherWidget() {
+private fun WeatherWidget(weather: com.example.proyectodesdisint.data.WeatherData?) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)),
@@ -278,13 +290,13 @@ private fun WeatherWidget() {
         ) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "24°C",
+                    text = weather?.temp ?: "24°C",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Soleado",
+                    text = weather?.description ?: "Cargando...",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray
                 )
