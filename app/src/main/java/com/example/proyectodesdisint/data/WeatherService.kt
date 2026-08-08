@@ -15,19 +15,17 @@ data class WeatherData(
 
 object WeatherService {
     private val client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
         .build()
         
     private const val API_KEY = "Y1d6D4TLRw95mHMh"
 
-    // Cache simple para evitar peticiones excesivas
     private var lastResult: WeatherData? = null
     private var lastFetchTime: Long = 0
 
     suspend fun fetchWeather(lat: Double = 20.6597, lon: Double = -103.3496): WeatherData? = withContext(Dispatchers.IO) {
         val currentTime = System.currentTimeMillis()
-        // Cache por 30 minutos
         if (lastResult != null && (currentTime - lastFetchTime) < 30 * 60 * 1000) {
             return@withContext lastResult
         }
@@ -42,9 +40,27 @@ object WeatherService {
             val body = response.body?.string() ?: return@withContext null
             val json = JSONObject(body)
             
-            val current = json.optJSONObject("data_current") ?: return@withContext null
-            val tempVal = current.optDouble("temperature", 0.0).toInt().toString() + "°C"
-            val pictocode = current.optInt("pictocode", 1)
+            // Priority: data_1h (first element) else data_day (first element)
+            val data1h = json.optJSONObject("data_1h")
+            val dataDay = json.optJSONObject("data_day")
+            
+            val tempVal: String
+            val pictocode: Int
+            
+            if (data1h != null && data1h.has("temperature")) {
+                val temps = data1h.optJSONArray("temperature")
+                val pictos = data1h.optJSONArray("pictocode")
+                tempVal = (temps?.optDouble(0, 24.0)?.toInt() ?: 24).toString() + "°C"
+                pictocode = pictos?.optInt(0, 1) ?: 1
+            } else if (dataDay != null && dataDay.has("temperature_max")) {
+                val temps = dataDay.optJSONArray("temperature_max")
+                val pictos = dataDay.optJSONArray("pictocode")
+                tempVal = (temps?.optDouble(0, 24.0)?.toInt() ?: 24).toString() + "°C"
+                pictocode = pictos?.optInt(0, 1) ?: 1
+            } else {
+                tempVal = "24°C"
+                pictocode = 1
+            }
             
             val description = mapPictocodeToDescription(pictocode)
             
@@ -59,11 +75,11 @@ object WeatherService {
 
     private fun mapPictocodeToDescription(code: Int): String {
         return when (code) {
-            1 -> "Soleado"
-            2 -> "Despejado"
+            1 -> "Despejado"
+            2 -> "Mayormente despejado"
             3 -> "Nubes dispersas"
             4 -> "Nublado"
-            5 -> "Cubierto"
+            5 -> "Muy nublado"
             6 -> "Lluvia ligera"
             7 -> "Lluvia"
             8 -> "Tormenta"

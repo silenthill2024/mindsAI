@@ -21,6 +21,49 @@ class WearSyncManager(
         sendEventToWatch(json, "/stream_event")
     }
 
+    fun syncUserProfile(profile: com.example.proyectodesdisint.model.UserProfile) {
+        val json = """
+            {
+              "type": "USER_PROFILE",
+              "data": {
+                "uid": "${profile.uid}",
+                "nombre": "${profile.nombre}",
+                "email": "${profile.email}",
+                "role": "${profile.role}",
+                "nivel": ${profile.nivel},
+                "xp": ${profile.xp},
+                "xpMax": ${profile.xpMax},
+                "photoUrl": "${profile.photoUrl}"
+              }
+            }
+        """.trimIndent()
+        sendEventToWatch(json, "/stream_event")
+    }
+
+    fun syncAcademicProgress(progress: Int, level: Int, xp: Int) {
+        val json = """
+            {
+              "type": "ACADEMIC_UPDATE",
+              "data": { 
+                "progress": $progress, 
+                "level": $level, 
+                "xp": $xp 
+              }
+            }
+        """.trimIndent()
+        sendEventToWatch(json, "/stream_event")
+    }
+
+    fun forceResetWatch(uid: String) {
+        val json = """
+            {
+              "type": "FORCE_RESET",
+              "data": { "uid": "$uid", "timestamp": ${System.currentTimeMillis()} }
+            }
+        """.trimIndent()
+        sendEventToWatch(json, "/stream_event")
+    }
+
     fun sendEventToWatch(
         json: String,
         path: String = "/stream_event"

@@ -25,6 +25,16 @@ class HomeViewModel(private val appContext: Context) : ViewModel() {
         firebaseService.listenTasks { taskList ->
             _tasks.value = taskList
             _suggestion.value = SuggestionEngine.generateSuggestion(taskList)
+            
+            // Sincronizar progreso académico con el reloj automáticamente
+            if (taskList.isNotEmpty()) {
+                val performance = com.example.proyectodesdisint.data.StudentAnalyticsEngine.analyzeStudentPerformance(taskList)
+                wearSyncManager.syncAcademicProgress(
+                    progress = (performance.progress * 100).toInt(),
+                    level = 0, // El nivel se maneja en ProfileViewModel
+                    xp = 0
+                )
+            }
         }
     }
 

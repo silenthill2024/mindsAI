@@ -1,4 +1,4 @@
-package com.example.proyectodesdisint.navigation
+ package com.example.proyectodesdisint.navigation
 
 import android.app.Application
 import androidx.compose.foundation.clickable
@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -62,10 +60,13 @@ fun AppNavigation() {
     }
 
     // Sincronizar el perfil cuando cambie el usuario o la pantalla
-    androidx.compose.runtime.LaunchedEffect(user, currentRoute) {
+    androidx.compose.runtime.LaunchedEffect(user, currentRoute, profile) {
         profileViewModel.loadProfile()
         user?.uid?.let { uid ->
             wearSyncManager.syncUserSession(uid)
+            if (profile.uid.isNotBlank()) {
+                wearSyncManager.syncUserProfile(profile)
+            }
         }
     }
 
@@ -95,6 +96,27 @@ fun AppNavigation() {
                                     .padding(start = 12.dp)
                                     .clickable { navController.navigate("profile") }
                             )
+                        }
+                    },
+                    actions = {
+                        if (currentRoute == "tasks" || currentRoute == "admin_panel") {
+                            IconButton(onClick = {
+                                // Forzar navegación a home limpiando la pila para asegurar que cargue el Dashboard del rol
+                                navController.navigate("home") {
+                                    popUpTo("home") { 
+                                        inclusive = true 
+                                        saveState = false // Resetear estado para forzar recarga de rol
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = false
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Home,
+                                    contentDescription = "Inicio",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(

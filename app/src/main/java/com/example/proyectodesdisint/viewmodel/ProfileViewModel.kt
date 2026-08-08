@@ -8,6 +8,7 @@ import com.example.proyectodesdisint.data.LocalPhotoService
 import com.example.proyectodesdisint.data.ProfileImageService
 import com.example.proyectodesdisint.data.ProfileRepository
 import com.example.proyectodesdisint.model.UserProfile
+import com.example.proyectodesdisint.streaming.WearSyncManager
 import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +18,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val repository = ProfileRepository()
     private val imageService = ProfileImageService(application)
     private val localPhotoService = LocalPhotoService(application)
+    private val wearSyncManager = WearSyncManager(application)
 
     private val _profile = MutableStateFlow(UserProfile())
     val profile: StateFlow<UserProfile> = _profile
@@ -50,7 +52,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     remotePhotoUrl
                 }
                 
-                _profile.value = userProfile.copy(photoUrl = finalPhotoUrl)
+                val finalProfile = userProfile.copy(photoUrl = finalPhotoUrl)
+                _profile.value = finalProfile
+                wearSyncManager.syncUserProfile(finalProfile)
                 _isLoading.value = false
             },
             onFailure = { error ->
@@ -69,6 +73,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             profile = profile,
             onSuccess = {
                 _profile.value = profile
+                wearSyncManager.syncUserProfile(profile)
                 _message.value = "Perfil guardado correctamente"
                 _isLoading.value = false
                 loadProfile()

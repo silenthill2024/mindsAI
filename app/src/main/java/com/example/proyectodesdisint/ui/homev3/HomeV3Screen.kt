@@ -342,37 +342,40 @@ private fun ProfessorQuickActions(
     onManageMaterials: () -> Unit,
     onViewForum: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            title = "Asignar\nTarea",
-            icon = Icons.Default.Task,
-            containerColor = MaterialTheme.colorScheme.primary,
-            onClick = onAssignTask
-        )
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            title = "Material\nApoyo",
-            icon = Icons.Default.MenuBook,
-            containerColor = MaterialTheme.colorScheme.secondary,
-            onClick = onManageMaterials
-        )
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            title = "Foro\nDocente",
-            icon = Icons.Default.Forum,
-            containerColor = MaterialTheme.colorScheme.tertiary,
-            onClick = onViewForum
-        )
+        item {
+            QuickActionCard(
+                title = "Asignar\nTarea",
+                icon = Icons.Default.Task,
+                containerColor = MaterialTheme.colorScheme.primary,
+                onClick = onAssignTask
+            )
+        }
+        item {
+            QuickActionCard(
+                title = "Material\nApoyo",
+                icon = Icons.Default.MenuBook,
+                containerColor = MaterialTheme.colorScheme.secondary,
+                onClick = onManageMaterials
+            )
+        }
+        item {
+            QuickActionCard(
+                title = "Foro\nDocente",
+                icon = Icons.Default.Forum,
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                onClick = onViewForum
+            )
+        }
     }
 }
 
 @Composable
 private fun QuickActionCard(
-    modifier: Modifier = Modifier,
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     containerColor: Color,
@@ -380,16 +383,30 @@ private fun QuickActionCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.height(110.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+        modifier = Modifier.width(130.dp).height(120.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(12.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(icon, null, tint = Color.White, modifier = Modifier.size(28.dp))
-            Text(title, style = MaterialTheme.typography.labelLarge, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.2f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = Color.White, modifier = Modifier.size(24.dp))
+            }
+            Text(
+                title, 
+                style = MaterialTheme.typography.titleSmall, 
+                color = Color.White, 
+                fontWeight = FontWeight.Bold, 
+                lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified
+            )
         }
     }
 }
@@ -400,45 +417,49 @@ private fun AdminControlPanel(
     onManageMaterials: () -> Unit,
     onManageForum: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AdminPanelSettings, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.width(8.dp))
-                Text("Gestión de Plataforma", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.AdminPanelSettings, null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(8.dp))
+            Text("Gestión de Plataforma", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                QuickActionCard(
+                    title = "Usuarios\ny Roles",
+                    icon = Icons.Default.Groups,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    onClick = onManageUsers
+                )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                AdminActionRow(Icons.Default.Groups, "Gestionar Usuarios y Roles", onClick = onManageUsers)
-                AdminActionRow(Icons.Default.MenuBook, "Gestionar Materiales de Apoyo", onClick = onManageMaterials)
-                AdminActionRow(Icons.Default.Forum, "Gestionar Foro Comunitario", onClick = onManageForum)
+            item {
+                QuickActionCard(
+                    title = "Gestionar\nMaterial",
+                    icon = Icons.Default.MenuBook,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    onClick = onManageMaterials
+                )
+            }
+            item {
+                QuickActionCard(
+                    title = "Gestionar\nForo",
+                    icon = Icons.Default.Forum,
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    onClick = onManageForum
+                )
             }
         }
     }
 }
 
-@Composable
-private fun AdminActionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(12.dp))
-            Text(label, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
 
 @Composable
 private fun SectionHeader(title: String, onSeeAll: () -> Unit) {

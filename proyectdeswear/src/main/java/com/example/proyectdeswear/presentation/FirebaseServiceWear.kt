@@ -1,31 +1,49 @@
-package com.example.proyectdeswear.presentation
+﻿package com.example.proyectdeswear.presentation
 
+import android.content.Context
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 
-class FirebaseServiceWear {
+class FirebaseServiceWear(private val context: Context) {
 
     private val db = FirebaseFirestore.getInstance()
-    private val tasksCollection = db.collection("tasks")
 
+    private fun getTasksCollection(): CollectionReference {
+        val prefs = context.getSharedPreferences("mindsai_prefs", Context.MODE_PRIVATE)
+        val uid = prefs.getString("current_user_uid", "default_user") ?: "default_user"
+        return db.collection("users").document(uid).collection("tareas")
+    }
+
+    /*
+     * Envía al reloj todas las tareas pendientes.
+     * MainActivity se encarga de clasificarlas en:
+     * vencidas, hoy y próximas.
+     */
     fun listenTasks(onUpdate: (List<Task>) -> Unit) {
-        tasksCollection.addSnapshotListener { snapshot, _ ->
-            val timeZone = TimeZone.getDefault()
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-                this.timeZone = timeZone
-            }.format(Date())
+        getTasksCollection().addSnapshotListener { snapshot, error ->
 
-            val allTasks = snapshot?.documents?.mapNotNull { doc ->
-                val task = doc.toObject(Task::class.java)
-                task?.apply { documentId = doc.id }
-            }.orEmpty()
+            if (error != null) {
+                onUpdate(emptyList())
+                return@addSnapshotListener
+            }
 
-            val pendingTasks = allTasks.filter { !it.completado }
-            val todayTasks = pendingTasks.filter { isTaskDueToday(it.fecha, today) }
-            onUpdate(todayTasks)
+            val pendingTasks = snapshot
+                ?.documents
+                ?.mapNotNull { document ->
+                    document.toObject(Task::class.java)?.apply {
+                        documentId = document.id
+                    }
+                }
+                ?.filter { !it.completado }
+                ?.sortedWith(
+                    compareBy<Task>(
+                        { it.fecha.trim() },
+                        { it.hora.trim() }
+                    )
+                )
+                .orEmpty()
+
+            onUpdate(pendingTasks)
         }
     }
 
@@ -39,40 +57,20 @@ class FirebaseServiceWear {
             return
         }
 
-        tasksCollection.document(task.documentId).update(
-            mapOf(
-                "completado" to true,
-                "completionTime" to System.currentTimeMillis()
+        getTasksCollection()
+            .document(task.documentId)
+            .update(
+                mapOf(
+                    "completado" to true,
+                    "completionTime" to System.currentTimeMillis()
+                )
             )
-        )
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { onFailure() }
-    }
-
-
-    fun createTestTask(
-        onSuccess: () -> Unit = {},
-        onFailure: () -> Unit = {}
-    ) {
-        val today = SimpleDateFormat(
-            "yyyy-MM-dd",
-            Locale.getDefault()
-        ).format(Date())
-
-        val data = hashMapOf<String, Any?>(
-            "id" to System.currentTimeMillis().toString(),
-            "titulo" to "Prueba smartwatch",
-            "descripcion" to "Conexion Firestore desde Wear OS",
-            "fecha" to today,
-            "hora" to "12:00",
-            "completado" to false,
-            "completionTime" to null
-        )
-
-        tasksCollection
-            .add(data)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { onFailure() }
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener {
+                onFailure()
+            }
     }
 
     fun deleteTask(
@@ -85,11 +83,15 @@ class FirebaseServiceWear {
             return
         }
 
-        tasksCollection
+        getTasksCollection()
             .document(task.documentId)
             .delete()
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { onFailure() }
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener {
+                onFailure()
+            }
     }
 
     fun createTask(
@@ -97,7 +99,10 @@ class FirebaseServiceWear {
         onSuccess: () -> Unit = {},
         onFailure: () -> Unit = {}
     ) {
+        val documentReference = getTasksCollection().document()
+
         val data = hashMapOf<String, Any?>(
+            "documentId" to documentReference.id,
             "id" to task.id,
             "titulo" to task.titulo,
             "descripcion" to task.descripcion,
@@ -107,17 +112,13 @@ class FirebaseServiceWear {
             "completionTime" to null
         )
 
-        tasksCollection
-            .add(data)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { onFailure() }
-    }
-    private fun isTaskDueToday(taskDate: String, today: String): Boolean {
-        val normalizedDate = taskDate.trim()
-
-        if (normalizedDate.isBlank()) return false
-        if (normalizedDate == today) return true
-
-        return normalizedDate.take(10) == today
+        documentReference
+            .set(data)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener {
+                onFailure()
+            }
     }
 }

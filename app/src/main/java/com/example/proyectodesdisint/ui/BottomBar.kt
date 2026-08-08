@@ -42,17 +42,17 @@ fun BottomBar(
         ),
         BottomNavigationItem(
             route = "ai",
-            label = "IA",
+            label = "Minds AI",
             icon = Icons.Default.SmartToy
         ),
         BottomNavigationItem(
             route = "materials",
-            label = "Apoyo",
+            label = "Materiales",
             icon = Icons.Default.MenuBook
         ),
         BottomNavigationItem(
             route = "blog",
-            label = "Blog",
+            label = "Comunidad",
             icon = Icons.Default.Forum
         ),
         BottomNavigationItem(
@@ -83,12 +83,21 @@ fun BottomBar(
                         navController.navigate(
                             item.route
                         ) {
-                            popUpTo("home") {
-                                saveState = true
+                            if (item.route == "home") {
+                                // Forzar navegación a home limpiando la pila para asegurar que cargue el Dashboard del rol
+                                popUpTo("home") { 
+                                    inclusive = true 
+                                    saveState = false // Resetear estado para forzar recarga de rol
+                                }
+                                launchSingleTop = true
+                                restoreState = false
+                            } else {
+                                popUpTo("home") {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-
-                            launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 },
