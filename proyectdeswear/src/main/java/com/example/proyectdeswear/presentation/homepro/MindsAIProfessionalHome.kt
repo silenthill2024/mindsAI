@@ -31,8 +31,8 @@ fun MindsAIProfessionalHome(
     tasks: List<Task>,
     notificationCount: Int,
     onNotificationsClick: () -> Unit,
-    onDelete: (Task) -> Unit,
-    modifier: Modifier = Modifier
+    @Suppress("UNUSED_PARAMETER") onDelete: (Task) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
 
     val pendingTasks =
@@ -55,12 +55,12 @@ fun MindsAIProfessionalHome(
     val currentDate =
         SimpleDateFormat(
             "EEE d MMM",
-            Locale("es", "MX")
+            Locale.forLanguageTag("es-MX")
         ).format(Date())
             .replaceFirstChar {
                 if (it.isLowerCase()) {
                     it.titlecase(
-                        Locale("es", "MX")
+                        Locale.forLanguageTag("es-MX")
                     )
                 } else {
                     it.toString()

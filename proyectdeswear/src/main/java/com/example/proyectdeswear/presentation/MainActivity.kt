@@ -47,6 +47,7 @@ import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import com.example.proyectdeswear.presentation.theme.ProyectoDesDisIntTheme
 import kotlinx.coroutines.delay
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -113,17 +114,21 @@ private fun MindsAIWearApp() {
         FirebaseServiceWear()
     }
 
-    LaunchedEffect(Unit) {
-        service.listenTasks { updatedTasks ->
-            tasks = updatedTasks
+    val currentUser = remember { FirebaseAuth.getInstance().currentUser }
 
-            if (
-                expandedTaskId != null &&
-                updatedTasks.none {
-                    it.documentId == expandedTaskId
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) {
+            service.listenTasks { updatedTasks ->
+                tasks = updatedTasks
+
+                if (
+                    expandedTaskId != null &&
+                    updatedTasks.none {
+                        it.documentId == expandedTaskId
+                    }
+                ) {
+                    expandedTaskId = null
                 }
-            ) {
-                expandedTaskId = null
             }
         }
     }
@@ -133,6 +138,17 @@ private fun MindsAIWearApp() {
             delay(1800)
             feedbackMessage = null
         }
+    }
+
+    if (currentUser == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                "Por favor, inicia sesión en tu teléfono para sincronizar.",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(20.dp)
+            )
+        }
+        return
     }
 
     when (screen) {

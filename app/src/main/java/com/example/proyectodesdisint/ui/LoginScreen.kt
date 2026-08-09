@@ -19,11 +19,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectodesdisint.viewmodel.AuthViewModel
-import com.example.proyectodesdisint.data.FirebaseService
-import com.example.proyectodesdisint.streaming.WearSyncManager
-import com.google.firebase.auth.FirebaseAuth
-import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -33,14 +28,6 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var mensaje by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-    val wearSyncManager = remember {
-        WearSyncManager(context.applicationContext)
-    }
-    val firebaseService = remember {
-        FirebaseService()
-    }
 
     Box(
         modifier = Modifier
@@ -79,7 +66,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo ElectrÃ³nico") },
+                label = { Text("Correo Electrónico") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
@@ -91,7 +78,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("ContraseÃ±a") },
+                label = { Text("Contraseña") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
@@ -119,7 +106,7 @@ fun LoginScreen(
                 shape = RoundedCornerShape(12.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
-                Text("Iniciar SesiÃ³n", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Iniciar Sesión", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
 
             if (mensaje.isNotEmpty()) {
@@ -130,7 +117,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = { navController.navigate("register") }) {
-                Text("Â¿Nuevo en MindsAI? RegÃ­strate aquÃ­")
+                Text("¿Nuevo en MindsAI? Regístrate aquí")
             }
             
             Spacer(modifier = Modifier.height(40.dp))
@@ -152,7 +139,7 @@ fun LoginScreen(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "Modelo Cerebral 3D - PrÃ³ximamente",
+                        "Modelo Cerebral 3D - Próximamente",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )

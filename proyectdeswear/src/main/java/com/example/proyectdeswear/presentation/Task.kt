@@ -8,5 +8,6 @@ data class Task(
     var hora: String = "",
     var completado: Boolean = false,
     var completionTime: Long? = null,
-    var documentId: String = ""
+    var documentId: String = "",
+    var prioridad: String = "Media"
 )

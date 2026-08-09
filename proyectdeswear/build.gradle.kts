@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    id("org.jetbrains.kotlin.android")
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
 }
@@ -31,14 +30,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     useLibrary("wear-sdk")
     buildFeatures {
         compose = true
     }
 }
+
+
 
 dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
@@ -58,7 +56,8 @@ dependencies {
 
     // Firebase
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth.ktx)
 
     // Wearable Support Libraries
     implementation(libs.google.android.support.wearable)

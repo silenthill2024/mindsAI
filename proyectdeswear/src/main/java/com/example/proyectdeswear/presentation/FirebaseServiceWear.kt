@@ -1,19 +1,31 @@
 ﻿package com.example.proyectdeswear.presentation
 
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 
 class FirebaseServiceWear {
 
     private val db = FirebaseFirestore.getInstance()
-    private val tasksCollection = db.collection("tasks")
+    private val auth = FirebaseAuth.getInstance()
+    private val usersCollection = db.collection("users")
+
+    private fun getTasksCollection(): CollectionReference? {
+        val uid = auth.currentUser?.uid ?: return null
+        return usersCollection.document(uid).collection("tareas")
+    }
 
     /*
-     * Envía al reloj todas las tareas pendientes.
-     * MainActivity se encarga de clasificarlas en:
-     * vencidas, hoy y próximas.
+     * Envía al reloj todas las tareas pendientes del usuario autenticado.
      */
     fun listenTasks(onUpdate: (List<Task>) -> Unit) {
-        tasksCollection.addSnapshotListener { snapshot, error ->
+        val collection = getTasksCollection()
+        if (collection == null) {
+            onUpdate(emptyList())
+            return
+        }
+
+        collection.addSnapshotListener { snapshot, error ->
 
             if (error != null) {
                 onUpdate(emptyList())
@@ -45,12 +57,13 @@ class FirebaseServiceWear {
         onSuccess: () -> Unit = {},
         onFailure: () -> Unit = {}
     ) {
-        if (task.documentId.isBlank()) {
+        val collection = getTasksCollection()
+        if (collection == null || task.documentId.isBlank()) {
             onFailure()
             return
         }
 
-        tasksCollection
+        collection
             .document(task.documentId)
             .update(
                 mapOf(
@@ -71,12 +84,13 @@ class FirebaseServiceWear {
         onSuccess: () -> Unit = {},
         onFailure: () -> Unit = {}
     ) {
-        if (task.documentId.isBlank()) {
+        val collection = getTasksCollection()
+        if (collection == null || task.documentId.isBlank()) {
             onFailure()
             return
         }
 
-        tasksCollection
+        collection
             .document(task.documentId)
             .delete()
             .addOnSuccessListener {
@@ -92,7 +106,13 @@ class FirebaseServiceWear {
         onSuccess: () -> Unit = {},
         onFailure: () -> Unit = {}
     ) {
-        val documentReference = tasksCollection.document()
+        val collection = getTasksCollection()
+        if (collection == null) {
+            onFailure()
+            return
+        }
+
+        val documentReference = collection.document()
 
         val data = hashMapOf<String, Any?>(
             "documentId" to documentReference.id,

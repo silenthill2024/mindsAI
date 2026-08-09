@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import com.example.proyectdeswear.presentation.Task
 import com.example.proyectdeswear.presentation.homepro.MindsAIColors
@@ -22,7 +22,7 @@ import com.example.proyectdeswear.presentation.homepro.MindsAIColors
 @Composable
 fun MindsAIRecommendationsScreen(
     tasks: List<Task>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val pending = tasks.filter { !it.completado }
     val nextTask = pending.firstOrNull()

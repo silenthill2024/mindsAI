@@ -92,14 +92,14 @@ fun CalendarScreen(navController: NavController) {
             }
 
             Spacer(Modifier.height(24.dp))
-            Text("PrÃ³ximas Tareas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text("Próximas Actividades", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
         }
 
         if (upcomingTasks.isEmpty()) {
             item {
                 Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                    Text("No hay tareas prÃ³ximas", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text("No hay actividades próximas", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
             }
         } else {
@@ -107,7 +107,7 @@ fun CalendarScreen(navController: NavController) {
             groupedTasks.forEach { (fecha, tasksForDay) ->
                 item {
                     Text(
-                        text = "ðŸ“… $fecha",
+                        text = "📅 $fecha",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(vertical = 8.dp)

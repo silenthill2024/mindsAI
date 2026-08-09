@@ -2,235 +2,93 @@ package com.example.proyectodesdisint.streaming
 
 import android.content.Context
 import android.util.Log
-import com.example.proyectodesdisint.model.Task
-import com.example.proyectodesdisint.model.User
+import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import org.json.JSONArray
-import org.json.JSONObject
 
 class WearSyncManager(
-    context: Context
+    private val context: Context
 ) {
 
-    private val nodeClient =
-        Wearable.getNodeClient(context)
+    private val nodeClient = Wearable.getNodeClient(context)
+    private val messageClient = Wearable.getMessageClient(context)
+    private val dataClient = Wearable.getDataClient(context)
 
-    private val messageClient =
-        Wearable.getMessageClient(context)
-
-    fun syncUserSession(
-        user: User
-    ) {
-        val data =
-            JSONObject().apply {
-                put("uid", user.uid)
-                put("nombre", user.nombre)
-                put("email", user.email)
-                put("role", user.role)
-                put("photoUrl", user.photoUrl)
+    fun syncUserSession(uid: String) {
+        val json = """
+            {
+              "type": "USER_SESSION",
+              "data": { "uid": "$uid" }
             }
-
-        sendTypedEvent(
-            type = "USER_SESSION",
-            data = data
-        )
+        """.trimIndent()
+        sendEventToWatch(json, "/stream_event")
     }
 
-    fun syncProfile(
-        user: User
-    ) {
-        val data =
-            JSONObject().apply {
-                put("uid", user.uid)
-                put("nombre", user.nombre)
-                put("email", user.email)
-                put("role", user.role)
-                put("photoUrl", user.photoUrl)
-            }
-
-        sendTypedEvent(
-            type = "PROFILE_SYNC",
-            data = data
-        )
-    }
-
-    fun syncTasks(
-        tasks: List<Task>
-    ) {
-        val array = JSONArray()
-
-        tasks.forEach { task ->
-
-            array.put(
-                JSONObject().apply {
-                    put(
-                        "id",
-                        task.documentId.ifBlank {
-                            task.id
-                        }
-                    )
-                    put("titulo", task.titulo)
-                    put(
-                        "descripcion",
-                        task.descripcion
-                    )
-                    put("fecha", task.fecha)
-                    put("hora", task.hora)
-                    put(
-                        "prioridad",
-                        task.prioridad
-                    )
-                    put(
-                        "completado",
-                        task.completado
-                    )
-
-                    put(
-                        "asignadaPor",
-                        extractAssignedBy(
-                            task.descripcion
-                        )
-                    )
-                }
-            )
+    fun syncUserProfile(profile: com.example.proyectodesdisint.model.UserProfile) {
+        // Usar DataClient para persistencia (Rama Obed logic)
+        val request = PutDataMapRequest.create("/user_profile").apply {
+            dataMap.putString("uid", profile.uid)
+            dataMap.putString("nombre", profile.nombre)
+            dataMap.putString("email", profile.email)
+            dataMap.putInt("nivel", profile.nivel)
+            dataMap.putInt("xp", profile.xp)
+            dataMap.putInt("xpMax", profile.xpMax)
+            dataMap.putString("photoUrl", profile.photoUrl)
+            dataMap.putLong("timestamp", System.currentTimeMillis())
         }
-
-        val data =
-            JSONObject().apply {
-                put("tasks", array)
+        dataClient.putDataItem(request.asPutDataRequest().setUrgent())
+        
+        // También enviar por mensaje para notificaciones inmediatas
+        val json = """
+            {
+              "type": "USER_PROFILE",
+              "data": {
+                "nombre": "${profile.nombre}",
+                "nivel": ${profile.nivel}
+              }
             }
-
-        sendTypedEvent(
-            type = "TASKS_SYNC",
-            data = data
-        )
+        """.trimIndent()
+        sendEventToWatch(json, "/stream_event")
     }
 
-    fun notifyAssignedTask(
-        task: Task
-    ) {
-        val data =
-            JSONObject().apply {
-                put(
-                    "id",
-                    task.documentId.ifBlank {
-                        task.id
-                    }
-                )
-                put("titulo", task.titulo)
-                put(
-                    "descripcion",
-                    task.descripcion
-                )
-                put("fecha", task.fecha)
-                put("hora", task.hora)
-                put(
-                    "prioridad",
-                    task.prioridad
-                )
-                put(
-                    "completado",
-                    task.completado
-                )
-                put(
-                    "asignadaPor",
-                    extractAssignedBy(
-                        task.descripcion
-                    )
-                )
+    fun syncAcademicProgress(progress: Int, level: Int, xp: Int) {
+        // Enviar progreso académico al DataLayer (Persistente)
+        val request = PutDataMapRequest.create("/academic_stats").apply {
+            dataMap.putInt("academic_progress", progress)
+            dataMap.putInt("user_level", level)
+            dataMap.putInt("user_xp", xp)
+            dataMap.putLong("timestamp", System.currentTimeMillis())
+        }
+        dataClient.putDataItem(request.asPutDataRequest().setUrgent())
+
+        // Mensaje inmediato
+        val json = """
+            {
+              "type": "ACADEMIC_UPDATE",
+              "data": { 
+                "progress": $progress, 
+                "level": $level, 
+                "xp": $xp 
+              }
             }
-
-        sendTypedEvent(
-            type = "TASK_ASSIGNED",
-            data = data
-        )
+        """.trimIndent()
+        sendEventToWatch(json, "/stream_event")
     }
 
-    fun syncTaskUpdated(
-        task: Task
-    ) {
-        val data =
-            JSONObject().apply {
-                put(
-                    "id",
-                    task.documentId.ifBlank {
-                        task.id
-                    }
-                )
-                put("titulo", task.titulo)
-                put(
-                    "descripcion",
-                    task.descripcion
-                )
-                put("fecha", task.fecha)
-                put("hora", task.hora)
-                put(
-                    "prioridad",
-                    task.prioridad
-                )
-                put(
-                    "completado",
-                    task.completado
-                )
-                put(
-                    "asignadaPor",
-                    extractAssignedBy(
-                        task.descripcion
-                    )
-                )
+    fun forceResetWatch(uid: String) {
+        val json = """
+            {
+              "type": "FORCE_RESET",
+              "data": { "uid": "$uid", "timestamp": ${System.currentTimeMillis()} }
             }
-
-        sendTypedEvent(
-            type = "TASK_UPDATED",
-            data = data
-        )
-    }
-
-    fun logoutWatch() {
-        sendTypedEvent(
-            type = "LOGOUT",
-            data = JSONObject()
-        )
-    }
-
-    private fun extractAssignedBy(
-        description: String
-    ): String {
-
-        val regex =
-            Regex(
-                """\[Asignada por:\s*(.+?)]"""
-            )
-
-        return regex
-            .find(description)
-            ?.groupValues
-            ?.getOrNull(1)
-            ?.trim()
-            ?: ""
-    }
-
-    private fun sendTypedEvent(
-        type: String,
-        data: JSONObject
-    ) {
-        val json =
-            JSONObject().apply {
-                put("type", type)
-                put("data", data)
-            }
-                .toString()
-
-        sendEventToWatch(
-            json = json,
-            path = "/stream_event"
-        )
+        """.trimIndent()
+        sendEventToWatch(json, "/stream_event")
     }
 
     fun sendEventToWatch(
         json: String,
         path: String = "/stream_event"
     ) {
+
         nodeClient.connectedNodes
             .addOnSuccessListener { nodes ->
 
@@ -239,34 +97,37 @@ class WearSyncManager(
                         "MindsAIWear",
                         "No hay smartwatch conectado"
                     )
-
                     return@addOnSuccessListener
                 }
 
                 nodes.forEach { node ->
 
-                    messageClient
-                        .sendMessage(
-                            node.id,
-                            path,
-                            json.toByteArray(
-                                Charsets.UTF_8
-                            )
-                        )
+                    messageClient.sendMessage(
+                        node.id,
+                        path,
+                        json.toByteArray(Charsets.UTF_8)
+                    )
                         .addOnSuccessListener {
                             Log.d(
                                 "MindsAIWear",
-                                "Evento enviado: $json"
+                                "Evento enviado al reloj: ${node.displayName}"
                             )
                         }
-                        .addOnFailureListener {
+                        .addOnFailureListener { error ->
                             Log.e(
                                 "MindsAIWear",
-                                "Error enviando evento",
-                                it
+                                "Error enviando evento al reloj",
+                                error
                             )
                         }
                 }
+            }
+            .addOnFailureListener { error ->
+                Log.e(
+                    "MindsAIWear",
+                    "Error buscando smartwatch",
+                    error
+                )
             }
     }
 }

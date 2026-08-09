@@ -17,7 +17,7 @@ class AuthRepository {
 
             val user = User(uid, nombre, email)
 
-            db.collection("usuarios")
+            db.collection("users")
                 .document(uid)
                 .set(user)
                 .await()

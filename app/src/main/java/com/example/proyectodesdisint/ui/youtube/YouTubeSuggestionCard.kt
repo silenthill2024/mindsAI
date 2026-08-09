@@ -128,7 +128,7 @@ fun YouTubeSuggestionCard(
                         )
                 ) {
                     Text(
-                        text = "Sugerencia MindsAI",
+                        text = "Recurso Gratuito",
                         color = Color.White,
                         style =
                             MaterialTheme.typography.labelSmall,

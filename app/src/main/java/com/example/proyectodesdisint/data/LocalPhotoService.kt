@@ -12,11 +12,7 @@ class LocalPhotoService(private val context: Context) {
 
     private val photoFileName = "profile_photo_local.jpg"
 
-    /**
-     * Guarda la imagen en el almacenamiento interno privado de la app.
-     * @param uid El ID único del usuario para que la foto sea personal.
-     * @return El path absoluto de la imagen guardada.
-     */
+
     fun savePhotoLocally(uri: Uri, uid: String): String? {
         return try {
             val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
