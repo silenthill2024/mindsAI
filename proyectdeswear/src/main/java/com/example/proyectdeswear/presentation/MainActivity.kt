@@ -1,13 +1,6 @@
 package com.example.proyectdeswear.presentation
 
 
-import androidx.compose.ui.platform.LocalContext
-import com.example.proyectdeswear.presentation.notificationsv3.NotificationCenterV3
-
-import com.example.proyectdeswear.presentation.homepro.MindsAIProfessionalHome
-
-import com.example.proyectdeswear.presentation.homev2.MindsAIHomeV2
-
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -39,17 +32,19 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
-import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
+import com.example.proyectdeswear.data.WearSessionStore
+import com.example.proyectdeswear.presentation.homepro.MindsAIProfessionalHome
+import com.example.proyectdeswear.presentation.notificationsv3.NotificationCenterV3
 import com.example.proyectdeswear.presentation.theme.ProyectoDesDisIntTheme
 import kotlinx.coroutines.delay
-import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -120,10 +115,20 @@ private fun MindsAIWearApp() {
         )
     }
 
-    val currentUser = remember { FirebaseAuth.getInstance().currentUser }
+    val sessionStore = remember {
+        WearSessionStore(
+            context.applicationContext
+        )
+    }
 
-    LaunchedEffect(currentUser) {
-        if (currentUser != null) {
+    var wearSession by remember {
+        mutableStateOf(
+            sessionStore.getSession()
+        )
+    }
+
+    LaunchedEffect(wearSession.uid) {
+        if (wearSession.uid.isNotBlank()) {
             service.listenTasks { updatedTasks ->
                 tasks = updatedTasks
 
@@ -146,10 +151,10 @@ private fun MindsAIWearApp() {
         }
     }
 
-    if (currentUser == null) {
+    if (wearSession.uid.isBlank()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
-                "Por favor, inicia sesión en tu teléfono para sincronizar.",
+                "Por favor, inicia sesiÃƒÂ³n en tu telÃƒÂ©fono para sincronizar.",
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(20.dp)
             )

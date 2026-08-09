@@ -1,4 +1,4 @@
-﻿package com.example.proyectodesdisint.ui
+package com.example.proyectodesdisint.ui
 
 import android.content.Intent
 import android.net.Uri
@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.proyectodesdisint.data.MaterialRepository
+import com.example.proyectodesdisint.streaming.WearSyncManager
 import com.example.proyectodesdisint.model.MaterialApoyo
 import com.example.proyectodesdisint.model.User
 import com.google.firebase.auth.FirebaseAuth
@@ -68,6 +69,11 @@ fun MaterialSupportScreen(
         FirebaseAuth.getInstance().currentUser
 
     val context = LocalContext.current
+
+    val wearSyncManager =
+        remember {
+            WearSyncManager(context)
+        }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember {
         SnackbarHostState()
@@ -154,7 +160,7 @@ fun MaterialSupportScreen(
                                     "Profesor"
 
                                 else ->
-                                    "Alumno · Solo lectura"
+                                    "Alumno Ãƒâ€šÃ‚Â· Solo lectura"
                             },
                             style =
                                 MaterialTheme.typography.labelSmall,
@@ -317,6 +323,22 @@ fun MaterialSupportScreen(
                         )
 
                     if (result.isSuccess) {
+
+                        wearSyncManager
+                            .sendMaterialNotification(
+                                title =
+                                    material.titulo,
+                                description =
+                                    material.descripcion
+                            )
+
+                        wearSyncManager
+                            .sendMaterialNotification(
+                                title =
+                                    material.titulo,
+                                description =
+                                    material.descripcion
+                            )
                         showAddDialog = false
 
                         snackbarHostState.showSnackbar(
@@ -445,7 +467,7 @@ private fun EmptyMaterialsMessage(
             text = if (canManage) {
                 "Presiona + para publicar el primer enlace."
             } else {
-                "El profesor todavía no ha publicado recursos."
+                "El profesor todavÃƒÆ’Ã‚Â­a no ha publicado recursos."
             },
             style = MaterialTheme.typography.bodyMedium
         )
@@ -493,7 +515,7 @@ private fun AddMaterialDialog(
                         title = it
                     },
                     label = {
-                        Text("Título")
+                        Text("TÃƒÆ’Ã‚Â­tulo")
                     },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -505,7 +527,7 @@ private fun AddMaterialDialog(
                         description = it
                     },
                     label = {
-                        Text("Descripción")
+                        Text("DescripciÃƒÆ’Ã‚Â³n")
                     },
                     minLines = 2,
                     modifier = Modifier.fillMaxWidth()

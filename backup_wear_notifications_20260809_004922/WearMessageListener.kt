@@ -70,7 +70,7 @@ class WearMessageListener : WearableListenerService() {
                     handleRelevantNotification(
                         root = root,
                         defaultTitle = "Material nuevo",
-                        defaultMessage = "Se agregÃƒÂ³ nuevo material de apoyo",
+                        defaultMessage = "Se agregÃ³ nuevo material de apoyo",
                         urgent = false
                     )
                 }
@@ -79,7 +79,7 @@ class WearMessageListener : WearableListenerService() {
                     handleRelevantNotification(
                         root = root,
                         defaultTitle = "Tarea por vencer",
-                        defaultMessage = "Tienes una tarea prÃƒÂ³xima a vencer",
+                        defaultMessage = "Tienes una tarea prÃ³xima a vencer",
                         urgent = true
                     )
                 }
@@ -194,20 +194,6 @@ class WearMessageListener : WearableListenerService() {
             .add(
                 type =
                     "TASK_DUE",
-                title =
-                    "Nueva tarea",
-                message =
-                    task.titulo
-            )
-
-        vibrateWatch(
-            urgent = true
-        )
-
-        WearNotificationStore(this)
-            .add(
-                type =
-                    "TASK_ASSIGNED",
                 title =
                     "Nueva tarea",
                 message =
@@ -474,7 +460,7 @@ class WearMessageListener : WearableListenerService() {
                 .filter {
                     it.isNotBlank()
                 }
-                .joinToString(" Ãƒâ€šÃ‚Â· ")
+                .joinToString(" Ã‚Â· ")
 
         val notification =
             NotificationCompat

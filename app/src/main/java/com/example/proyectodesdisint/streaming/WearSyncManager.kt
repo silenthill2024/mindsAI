@@ -118,4 +118,85 @@ class WearSyncManager(
                 Log.e("MindsAIWear", "Error buscando smartwatch", error)
             }
     }
+
+    fun sendBlogCommentNotification(
+        author: String,
+        message: String
+    ) {
+        val safeAuthor = author
+            .replace("\"", "'")
+
+        val safeMessage = message
+            .replace("\"", "'")
+            .replace("\n", " ")
+
+        val json = """
+            {
+              "type": "BLOG_COMMENT",
+              "data": {
+                "title": "Nuevo comentario",
+                "message": "$safeAuthor comentó: $safeMessage",
+                "timestamp": ${System.currentTimeMillis()}
+              }
+            }
+        """.trimIndent()
+
+        sendEventToWatch(
+            json,
+            "/stream_event"
+        )
+    }
+
+
+    fun sendMaterialNotification(
+        title: String,
+        description: String
+    ) {
+        val safeTitle = title
+            .replace("\"", "'")
+
+        val safeDescription = description
+            .replace("\"", "'")
+            .replace("\n", " ")
+
+        val json = """
+            {
+              "type": "NEW_MATERIAL",
+              "data": {
+                "title": "Material nuevo",
+                "message": "$safeTitle - $safeDescription",
+                "timestamp": ${System.currentTimeMillis()}
+              }
+            }
+        """.trimIndent()
+
+        sendEventToWatch(
+            json,
+            "/stream_event"
+        )
+    }
+
+
+    fun sendTaskDueNotification(
+        title: String
+    ) {
+        val safeTitle = title
+            .replace("\"", "'")
+
+        val json = """
+            {
+              "type": "TASK_DUE",
+              "data": {
+                "title": "Tarea por vencer",
+                "message": "$safeTitle",
+                "timestamp": ${System.currentTimeMillis()}
+              }
+            }
+        """.trimIndent()
+
+        sendEventToWatch(
+            json,
+            "/stream_event"
+        )
+    }
 }

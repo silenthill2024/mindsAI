@@ -92,7 +92,7 @@ fun BlogFirebaseScreen(navController: NavController) {
                 }
                 blogs!!.isEmpty() -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No hay publicaciones aún. ¡Sé el primero!", color = Color.Gray)
+                        Text("No hay publicaciones aÃºn. Â¡SÃ© el primero!", color = Color.Gray)
                     }
                 }
                 else -> {
@@ -123,11 +123,11 @@ fun BlogFirebaseScreen(navController: NavController) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Nueva Publicación") },
+            title = { Text("Nueva PublicaciÃ³n") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("¿Qué quieres compartir?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("TÃ­tulo") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Â¿QuÃ© quieres compartir?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                 }
             },
             confirmButton = {
@@ -161,12 +161,12 @@ fun BlogFirebaseItemView(
     var replies by remember { mutableStateOf(listOf<BlogReply>()) }
     var replyText by remember { mutableStateOf("") }
     
-    // Edición de Post
+    // EdiciÃ³n de Post
     var showEditPostDialog by remember { mutableStateOf(false) }
     var editTitle by remember { mutableStateOf(blog.titulo) }
     var editContent by remember { mutableStateOf(blog.contenido) }
     
-    // Edición de Comentario
+    // EdiciÃ³n de Comentario
     var showEditReplyDialog by remember { mutableStateOf(false) }
     var selectedReplyId by remember { mutableStateOf("") }
     var editReplyText by remember { mutableStateOf("") }
@@ -209,7 +209,7 @@ fun BlogFirebaseItemView(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            " • " + SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(blog.fecha)),
+                            " â€¢ " + SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(blog.fecha)),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.Gray
                         )
@@ -310,14 +310,14 @@ fun BlogFirebaseItemView(
         }
     }
 
-    // Diálogos de Edición
+    // DiÃ¡logos de EdiciÃ³n
     if (showEditPostDialog) {
         AlertDialog(
             onDismissRequest = { showEditPostDialog = false },
-            title = { Text("Editar Publicación") },
+            title = { Text("Editar PublicaciÃ³n") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = editTitle, onValueChange = { editTitle = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = editTitle, onValueChange = { editTitle = it }, label = { Text("TÃ­tulo") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = editContent, onValueChange = { editContent = it }, label = { Text("Contenido") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                 }
             },

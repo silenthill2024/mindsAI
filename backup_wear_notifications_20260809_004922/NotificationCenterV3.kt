@@ -17,10 +17,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Text
 import com.example.proyectdeswear.presentation.Task
-import com.example.proyectdeswear.data.WearNotificationStore
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -90,7 +87,7 @@ fun NotificationCenterV3(
      * se generan con las tareas.
      *
      * COMMENT y MATERIAL quedan preparados
-     * para conectarlos despuÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s con Firebase/API.
+     * para conectarlos despuÃƒÂ©s con Firebase/API.
      */
 
     val notifications =
@@ -199,7 +196,7 @@ private fun NotificationsHeader(
         ) {
 
             Text(
-                text = "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹",
+                text = "Ã¢â‚¬Â¹",
                 color =
                     TextPrimary,
                 fontSize = 25.sp,
@@ -226,7 +223,7 @@ private fun NotificationsHeader(
             Text(
                 text =
                     when (count) {
-                        0 -> "Todo al dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a"
+                        0 -> "Todo al dÃƒÂ­a"
                         1 -> "1 importante"
                         else -> "$count importantes"
                     },
@@ -421,7 +418,7 @@ private fun EmptyNotifications() {
         ) {
 
             Text(
-                text = "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“",
+                text = "Ã¢Å“â€œ",
                 color =
                     Purple,
                 fontSize = 21.sp,
@@ -520,7 +517,7 @@ private fun buildTaskNotifications(
                         message =
                             task.titulo,
                         timeLabel =
-                            "Requiere atenciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n",
+                            "Requiere atenciÃƒÂ³n",
                         task =
                             task
                     )
@@ -552,12 +549,12 @@ private fun buildTaskNotifications(
                         type =
                             RelevantNotificationType.TASK_DUE,
                         title =
-                            "Vence maÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±ana",
+                            "Vence maÃƒÂ±ana",
                         message =
                             task.titulo,
                         timeLabel =
                             task.hora.ifBlank {
-                                "MaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±ana"
+                                "MaÃƒÂ±ana"
                             },
                         task =
                             task
@@ -630,64 +627,4 @@ private fun sameDay(
         second.get(
             Calendar.DAY_OF_YEAR
         )
-}
-
-private fun formatRelativeTime(
-    timestamp: Long
-): String {
-
-    val difference =
-        (
-            System.currentTimeMillis() -
-                timestamp
-        ).coerceAtLeast(
-            0L
-        )
-
-    val minute =
-        60_000L
-
-    val hour =
-        60L *
-            minute
-
-    val day =
-        24L *
-            hour
-
-    return when {
-
-        difference <
-            minute ->
-            "Ahora"
-
-        difference <
-            hour -> {
-
-            val value =
-                difference /
-                    minute
-
-            "Hace $value min"
-        }
-
-        difference <
-            day -> {
-
-            val value =
-                difference /
-                    hour
-
-            "Hace $value h"
-        }
-
-        else -> {
-
-            val value =
-                difference /
-                    day
-
-            "Hace $value d"
-        }
-    }
 }

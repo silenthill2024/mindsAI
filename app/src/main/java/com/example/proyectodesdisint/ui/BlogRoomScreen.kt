@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.example.proyectodesdisint.streaming.WearSyncManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,6 +30,11 @@ import java.util.*
 @Composable
 fun BlogRoomScreen() {
     val context = LocalContext.current
+
+    val wearSyncManager =
+        remember {
+            WearSyncManager(context)
+        }
     val viewModel: BlogViewModel = viewModel(factory = BlogViewModelFactory(context))
     val blogs by viewModel.allBlogs.collectAsState(initial = emptyList())
     
@@ -39,7 +45,7 @@ fun BlogRoomScreen() {
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Espacio de Reflexión",
+                "Espacio de ReflexiÃ³n",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -74,8 +80,8 @@ fun BlogRoomScreen() {
             title = { Text("Nueva Entrada") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("¿En qué piensas?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("TÃ­tulo") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Â¿En quÃ© piensas?") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                 }
             },
             confirmButton = {
