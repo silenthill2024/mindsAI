@@ -162,7 +162,7 @@ fun HomeV3Screen(
             } else if (activeRole == "ADMIN") {
                 // VISTA ESPECÍFICA PARA ADMINISTRADOR
                 item { AdminControlPanel(
-                    onManageUsers = { /* TODO */ },
+                    onManageUsers = { navController.navigate("admin_panel") },
                     onManageMaterials = { navController.navigate("materials") },
                     onManageForum = { navController.navigate("blog") }
                 ) }
