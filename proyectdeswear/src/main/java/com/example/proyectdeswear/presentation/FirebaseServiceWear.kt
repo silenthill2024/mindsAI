@@ -1,43 +1,117 @@
-﻿package com.example.proyectdeswear.presentation
+package com.example.proyectdeswear.presentation
 
+import android.content.Context
+import android.util.Log
+import com.example.proyectdeswear.data.WearSessionStore
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 
-class FirebaseServiceWear {
+class FirebaseServiceWear(
+    private val context: Context
+) {
 
-    private val db = FirebaseFirestore.getInstance()
-    private val tasksCollection = db.collection("tasks")
+    private val db =
+        FirebaseFirestore.getInstance()
 
-    /*
-     * Envía al reloj todas las tareas pendientes.
-     * MainActivity se encarga de clasificarlas en:
-     * vencidas, hoy y próximas.
-     */
-    fun listenTasks(onUpdate: (List<Task>) -> Unit) {
-        tasksCollection.addSnapshotListener { snapshot, error ->
+    private fun getTasksCollection():
+        CollectionReference? {
 
-            if (error != null) {
-                onUpdate(emptyList())
-                return@addSnapshotListener
-            }
+        val session =
+            WearSessionStore(
+                context.applicationContext
+            ).getSession()
 
-            val pendingTasks = snapshot
-                ?.documents
-                ?.mapNotNull { document ->
-                    document.toObject(Task::class.java)?.apply {
-                        documentId = document.id
-                    }
-                }
-                ?.filter { !it.completado }
-                ?.sortedWith(
-                    compareBy<Task>(
-                        { it.fecha.trim() },
-                        { it.hora.trim() }
-                    )
-                )
-                .orEmpty()
+        val uid =
+            session.uid.trim()
 
-            onUpdate(pendingTasks)
+        if (uid.isBlank()) {
+
+            Log.w(
+                "MindsAIWearTasks",
+                "No hay UID sincronizado en el reloj"
+            )
+
+            return null
         }
+
+        Log.d(
+            "MindsAIWearTasks",
+            "Cargando tareas del UID: $uid"
+        )
+
+        return db
+            .collection("users")
+            .document(uid)
+            .collection("tareas")
+    }
+
+    fun listenTasks(
+        onUpdate: (List<Task>) -> Unit
+    ) {
+
+        val collection =
+            getTasksCollection()
+
+        if (collection == null) {
+
+            onUpdate(
+                emptyList()
+            )
+
+            return
+        }
+
+        collection
+            .addSnapshotListener {
+                    snapshot,
+                    error ->
+
+                if (error != null) {
+
+                    Log.e(
+                        "MindsAIWearTasks",
+                        "Error leyendo tareas",
+                        error
+                    )
+
+                    onUpdate(
+                        emptyList()
+                    )
+
+                    return@addSnapshotListener
+                }
+
+                val tasks =
+                    snapshot
+                        ?.documents
+                        ?.mapNotNull {
+                                document ->
+
+                            document
+                                .toObject(
+                                    Task::class.java
+                                )
+                                ?.also {
+                                    task ->
+
+                                    task.documentId =
+                                        document.id
+                                }
+                        }
+                        ?.filter {
+                            !it.completado
+                        }
+                        .orEmpty()
+
+                Log.d(
+                    "MindsAIWearTasks",
+                    "Tareas recibidas: ${tasks.size}"
+                )
+
+                onUpdate(
+                    tasks
+                )
+            }
     }
 
     fun markTaskAsCompleted(
@@ -45,23 +119,52 @@ class FirebaseServiceWear {
         onSuccess: () -> Unit = {},
         onFailure: () -> Unit = {}
     ) {
-        if (task.documentId.isBlank()) {
+
+        if (
+            task.documentId
+                .isBlank()
+        ) {
+
             onFailure()
+
             return
         }
 
-        tasksCollection
-            .document(task.documentId)
+        val collection =
+            getTasksCollection()
+
+        if (
+            collection == null
+        ) {
+
+            onFailure()
+
+            return
+        }
+
+        collection
+            .document(
+                task.documentId
+            )
             .update(
                 mapOf(
                     "completado" to true,
-                    "completionTime" to System.currentTimeMillis()
+                    "completionTime" to
+                        System.currentTimeMillis()
                 )
             )
             .addOnSuccessListener {
                 onSuccess()
             }
             .addOnFailureListener {
+                error ->
+
+                Log.e(
+                    "MindsAIWearTasks",
+                    "Error completando tarea",
+                    error
+                )
+
                 onFailure()
             }
     }
@@ -71,46 +174,46 @@ class FirebaseServiceWear {
         onSuccess: () -> Unit = {},
         onFailure: () -> Unit = {}
     ) {
-        if (task.documentId.isBlank()) {
+
+        if (
+            task.documentId
+                .isBlank()
+        ) {
+
             onFailure()
+
             return
         }
 
-        tasksCollection
-            .document(task.documentId)
+        val collection =
+            getTasksCollection()
+
+        if (
+            collection == null
+        ) {
+
+            onFailure()
+
+            return
+        }
+
+        collection
+            .document(
+                task.documentId
+            )
             .delete()
             .addOnSuccessListener {
                 onSuccess()
             }
             .addOnFailureListener {
-                onFailure()
-            }
-    }
+                error ->
 
-    fun createTask(
-        task: Task,
-        onSuccess: () -> Unit = {},
-        onFailure: () -> Unit = {}
-    ) {
-        val documentReference = tasksCollection.document()
+                Log.e(
+                    "MindsAIWearTasks",
+                    "Error eliminando tarea",
+                    error
+                )
 
-        val data = hashMapOf<String, Any?>(
-            "documentId" to documentReference.id,
-            "id" to task.id,
-            "titulo" to task.titulo,
-            "descripcion" to task.descripcion,
-            "fecha" to task.fecha,
-            "hora" to task.hora,
-            "completado" to false,
-            "completionTime" to null
-        )
-
-        documentReference
-            .set(data)
-            .addOnSuccessListener {
-                onSuccess()
-            }
-            .addOnFailureListener {
                 onFailure()
             }
     }

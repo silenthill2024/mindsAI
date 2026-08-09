@@ -1,4 +1,4 @@
-package com.example.proyectodesdisint.data
+﻿package com.example.proyectodesdisint.data
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
@@ -17,7 +17,7 @@ class TareaRepository {
     suspend fun agregarTarea(tarea: Task) {
         val uid = getUserId()
 
-        db.collection("usuarios")
+        db.collection("users")
             .document(uid)
             .collection("tareas")
             .add(tarea)
@@ -27,7 +27,7 @@ class TareaRepository {
     suspend fun obtenerTareas(): List<Task> {
         val uid = getUserId()
 
-        val result = db.collection("usuarios")
+        val result = db.collection("users")
             .document(uid)
             .collection("tareas")
             .get()
@@ -43,3 +43,4 @@ class TareaRepository {
         }
     }
 }
+

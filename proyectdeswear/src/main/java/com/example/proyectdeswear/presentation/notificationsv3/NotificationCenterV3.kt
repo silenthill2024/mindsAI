@@ -49,20 +49,19 @@ private val Purple =
 private val Warning =
     Color(0xFFFFB74D)
 
-private val Danger =
-    Color(0xFFFF6B6B)
-
 private val MaterialBlue =
     Color(0xFF67B7FF)
 
 private val CommentPurple =
     Color(0xFFB69CFF)
 
+
 enum class RelevantNotificationType {
     COMMENT,
     TASK_DUE,
     MATERIAL
 }
+
 
 data class RelevantNotification(
     val id: String,
@@ -72,6 +71,7 @@ data class RelevantNotification(
     val timeLabel: String = "",
     val task: Task? = null
 )
+
 
 @Composable
 fun NotificationCenterV3(
@@ -83,23 +83,20 @@ fun NotificationCenterV3(
 ) {
 
     /*
-     * Por ahora las notificaciones reales disponibles
-     * desde este módulo son las tareas.
+     * Actualmente las notificaciones reales
+     * se generan con las tareas.
      *
-     * COMMENT y MATERIAL quedan preparados para
-     * recibir eventos desde Firebase/API.
+     * COMMENT y MATERIAL quedan preparados
+     * para conectarlos despuÃ©s con Firebase/API.
      */
+
     val notifications =
-        buildTaskNotifications(
-            tasks = tasks
-        )
+        buildTaskNotifications(tasks)
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Background
-            )
+            .background(Background)
     ) {
 
         Column(
@@ -127,9 +124,7 @@ fun NotificationCenterV3(
                     Modifier.height(8.dp)
             )
 
-            if (
-                notifications.isEmpty()
-            ) {
+            if (notifications.isEmpty()) {
 
                 EmptyNotifications()
 
@@ -145,7 +140,7 @@ fun NotificationCenterV3(
                 ) {
 
                     items(
-                        notifications,
+                        items = notifications,
                         key = {
                             it.id
                         }
@@ -169,6 +164,7 @@ fun NotificationCenterV3(
         }
     }
 }
+
 
 @Composable
 private fun NotificationsHeader(
@@ -200,7 +196,7 @@ private fun NotificationsHeader(
         ) {
 
             Text(
-                text = "‹",
+                text = "â€¹",
                 color =
                     TextPrimary,
                 fontSize = 25.sp,
@@ -226,10 +222,10 @@ private fun NotificationsHeader(
 
             Text(
                 text =
-                    if (count == 1) {
-                        "1 importante"
-                    } else {
-                        "$count importantes"
+                    when (count) {
+                        0 -> "Todo al dÃ­a"
+                        1 -> "1 importante"
+                        else -> "$count importantes"
                     },
                 color =
                     TextSecondary,
@@ -265,6 +261,7 @@ private fun NotificationsHeader(
     }
 }
 
+
 @Composable
 private fun RelevantNotificationCard(
     notification:
@@ -272,9 +269,7 @@ private fun RelevantNotificationCard(
 ) {
 
     val accent =
-        when (
-            notification.type
-        ) {
+        when (notification.type) {
 
             RelevantNotificationType.COMMENT ->
                 CommentPurple
@@ -287,9 +282,7 @@ private fun RelevantNotificationCard(
         }
 
     val icon =
-        when (
-            notification.type
-        ) {
+        when (notification.type) {
 
             RelevantNotificationType.COMMENT ->
                 "C"
@@ -342,7 +335,7 @@ private fun RelevantNotificationCard(
 
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .padding(
                     start = 9.dp
                 )
@@ -381,16 +374,14 @@ private fun RelevantNotificationCard(
 
                 Spacer(
                     modifier =
-                        Modifier.height(
-                            3.dp
-                        )
+                        Modifier.height(3.dp)
                 )
 
                 Text(
                     text =
-                        notification
-                            .timeLabel,
-                    color = accent,
+                        notification.timeLabel,
+                    color =
+                        accent,
                     fontSize = 8.sp,
                     fontWeight =
                         FontWeight.Bold
@@ -399,6 +390,7 @@ private fun RelevantNotificationCard(
         }
     }
 }
+
 
 @Composable
 private fun EmptyNotifications() {
@@ -426,7 +418,7 @@ private fun EmptyNotifications() {
         ) {
 
             Text(
-                text = "✓",
+                text = "âœ“",
                 color =
                     Purple,
                 fontSize = 21.sp,
@@ -462,6 +454,7 @@ private fun EmptyNotifications() {
     }
 }
 
+
 private fun buildTaskNotifications(
     tasks: List<Task>
 ): List<RelevantNotification> {
@@ -490,10 +483,9 @@ private fun buildTaskNotifications(
                     ?: return@mapNotNull null
 
             val taskCalendar =
-                Calendar.getInstance()
-                    .apply {
-                        time = taskDate
-                    }
+                Calendar.getInstance().apply {
+                    time = taskDate
+                }
 
             val isToday =
                 sameDay(
@@ -508,10 +500,8 @@ private fun buildTaskNotifications(
                 )
 
             val isOverdue =
-                taskCalendar.before(
-                    today
-                ) &&
-                !isToday
+                taskCalendar.before(today) &&
+                    !isToday
 
             when {
 
@@ -527,8 +517,9 @@ private fun buildTaskNotifications(
                         message =
                             task.titulo,
                         timeLabel =
-                            "Requiere atención",
-                        task = task
+                            "Requiere atenciÃ³n",
+                        task =
+                            task
                     )
 
                 isToday ->
@@ -543,11 +534,11 @@ private fun buildTaskNotifications(
                         message =
                             task.titulo,
                         timeLabel =
-                            task.hora
-                                .ifBlank {
-                                    "Hoy"
-                                },
-                        task = task
+                            task.hora.ifBlank {
+                                "Hoy"
+                            },
+                        task =
+                            task
                     )
 
                 isTomorrow ->
@@ -558,15 +549,15 @@ private fun buildTaskNotifications(
                         type =
                             RelevantNotificationType.TASK_DUE,
                         title =
-                            "Vence mañana",
+                            "Vence maÃ±ana",
                         message =
                             task.titulo,
                         timeLabel =
-                            task.hora
-                                .ifBlank {
-                                    "Mañana"
-                                },
-                        task = task
+                            task.hora.ifBlank {
+                                "MaÃ±ana"
+                            },
+                        task =
+                            task
                     )
 
                 else ->
@@ -575,13 +566,12 @@ private fun buildTaskNotifications(
         }
 }
 
+
 private fun parseTaskDate(
     value: String
 ): Date? {
 
-    if (
-        value.isBlank()
-    ) {
+    if (value.isBlank()) {
         return null
     }
 
@@ -592,23 +582,33 @@ private fun parseTaskDate(
             "dd-MM-yyyy"
         )
 
-    formats.forEach { format ->
+    for (format in formats) {
 
         try {
 
-            return SimpleDateFormat(
-                format,
-                Locale.getDefault()
-            ).apply {
-                isLenient = false
-            }.parse(value)
+            val parser =
+                SimpleDateFormat(
+                    format,
+                    Locale.getDefault()
+                ).apply {
+                    isLenient = false
+                }
+
+            val parsed =
+                parser.parse(value)
+
+            if (parsed != null) {
+                return parsed
+            }
 
         } catch (_: Exception) {
+            // Intentar siguiente formato
         }
     }
 
     return null
 }
+
 
 private fun sameDay(
     first: Calendar,

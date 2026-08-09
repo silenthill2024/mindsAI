@@ -1,5 +1,7 @@
 package com.example.proyectdeswear.presentation
 
+
+import androidx.compose.ui.platform.LocalContext
 import com.example.proyectdeswear.presentation.notificationsv3.NotificationCenterV3
 
 import com.example.proyectdeswear.presentation.homepro.MindsAIProfessionalHome
@@ -109,8 +111,12 @@ private fun MindsAIWearApp() {
         mutableStateOf<String?>(null)
     }
 
-    val service = remember {
-        FirebaseServiceWear()
+    val context = LocalContext.current
+
+    val service = remember(context) {
+        FirebaseServiceWear(
+            context.applicationContext
+        )
     }
 
     LaunchedEffect(Unit) {
