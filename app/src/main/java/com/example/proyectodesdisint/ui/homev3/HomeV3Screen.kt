@@ -26,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -151,7 +152,7 @@ fun HomeV3Screen(
                 }
 
                 item {
-                    SectionHeader("Alumnos Disponibles", onSeeAll = { /* TODO */ })
+                    SectionHeader("Alumnos Disponibles")
                 }
                 
                 item {
@@ -219,16 +220,16 @@ private fun HomeV3Header(
     onViewTasks: () -> Unit,
     onToggleAdminView: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 20.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f)) { 
                 Text(
-                    text = if (userName.isNotBlank()) "Hola, $userName" else "MindsAI",
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = if (userName.isNotBlank()) "¡Hola, $userName!" else "¡Hola!",
+                    style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -236,42 +237,58 @@ private fun HomeV3Header(
                     text = when {
                         activeRole == "PROFE" -> "Gestión Docente"
                         activeRole == "ADMIN" -> "Panel de Control"
-                        else -> if (pendingTasks == 0) "Sin tareas pendientes" else "Tienes $pendingTasks pendiente(s)"
+                        else -> if (pendingTasks == 0) "Todo al día por hoy" else "Tienes $pendingTasks tarea(s) pendiente(s)"
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
                 WeatherWidget(weatherData)
-                Spacer(Modifier.width(16.dp))
                 
                 if (role == "ADMIN") {
-                    IconButton(onClick = onToggleAdminView) {
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onToggleAdminView,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.SwapHoriz, 
                             contentDescription = "Cambiar Vista",
-                            tint = if (viewAsProfe) MaterialTheme.colorScheme.primary else Color.Gray
+                            tint = if (viewAsProfe) MaterialTheme.colorScheme.primary else Color.Gray,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
-                    Spacer(Modifier.width(8.dp))
                 }
+            }
+        }
 
-                if (role != "PROFE" && !(role == "ADMIN" && viewAsProfe)) {
-                    Button(
-                        onClick = onViewTasks,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Assignment, null)
-                        Spacer(Modifier.width(4.dp))
-                        Text("Tareas", fontWeight = FontWeight.Bold)
-                    }
-                }
+        // Nuevo diseño del botón de tareas para alumnos, ubicado debajo del saludo para mejor accesibilidad
+        if (role != "PROFE" && !(role == "ADMIN" && viewAsProfe)) {
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = onViewTasks,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White
+                ),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Assignment, null)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Ver mis Tareas Pendientes", 
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall
+                )
             }
         }
     }
@@ -462,16 +479,13 @@ private fun AdminControlPanel(
 
 
 @Composable
-private fun SectionHeader(title: String, onSeeAll: () -> Unit) {
+private fun SectionHeader(title: String) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        TextButton(onClick = onSeeAll) {
-            Text("Ver todo", style = MaterialTheme.typography.labelLarge)
-        }
     }
 }
 

@@ -1,0 +1,450 @@
+﻿
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:74:            .update(
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:75:                mapOf(
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:76:                    "titulo" to task.titulo,
+> app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:77:                    "descripcion" to task.descripcion,
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:78:                    "fecha" to task.fecha,
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:79:                    "hora" to task.hora,
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:80:                    "completado" to task.completado,
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:81:                    "completionTime" to task.completionTime
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:82:                )
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:83:            )
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:84:            .addOnSuccessListener {
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:85:                onSuccess(task)
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:86:            }
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:87:            .addOnFailureListener { error ->
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:88:                onFailure(error)
+  app\src\main\java\com\example\proyectodesdisint\data\FirebaseService.kt:89:            }
+  app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:37:            Task(
+  app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:38:                id = doc.id,
+  app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:39:                titulo = doc.getString("titulo") ?: "",
+> app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:40:                descripcion = doc.getString("descripcion") ?: "",
+  app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:41:                fecha = doc.getString("fecha") ?: ""
+  app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:42:            )
+  app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:43:        }
+  app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:44:    }
+  app\src\main\java\com\example\proyectodesdisint\data\TareaRepository.kt:45:}
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:136:            buildString {
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:137:                append(task.titulo)
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:138:                append(" ")
+> app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:139:                append(task.descripcion)
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:140:                append(" ")
+> app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:141:                append(task.prioridad)
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:142:            }
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:143:        }.normalizeText()
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:144:
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:145:        val hasHighPriority = pendingTasks.any {
+> app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:146:            it.prioridad.equals(
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:147:                "Alta",
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:148:                ignoreCase = true
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:149:            )
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:150:        }
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:151:
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:152:        return rules
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:153:            .map { rule ->
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:154:                var score = rule.fallbackScore
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:155:
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:156:                rule.keywords.forEach { keyword ->
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:157:                    if 
+(taskText.contains(keyword.normalizeText())) {
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:158:                        score += 12
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:215:        }
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:216:
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:217:        val highPriority = pending.count {
+> app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:218:            it.prioridad.equals(
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:219:                "Alta",
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:220:                ignoreCase = true
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:221:            )
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:222:        }
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:223:
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:224:        return when {
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:225:            highPriority > 0 ->
+> app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:226:                "Detecte $highPriority tarea(s) de 
+prioridad alta. Los videos se ordenaron para ayudarte a concentrarte y organizar tu tiempo."
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:227:
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:228:            pending.size >= 4 ->
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:229:                "Tienes ${pending.size} tareas 
+pendientes. Te recomiendo organizacion, concentracion y manejo del estres."
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:230:
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:231:            else ->
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:232:                "Analice ${pending.size} tarea(s) 
+pendiente(s) y seleccione videos relacionados con su contenido."
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:233:        }
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:234:    }
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:235:
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:236:    private fun createReason(
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:237:        video: YouTubeSuggestion,
+  app\src\main\java\com\example\proyectodesdisint\data\TaskVideoRecommendationEngine.kt:238:        pendingTasks: List<Task>,
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:3:data class MaterialApoyo(
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:4:    var id: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:5:    val titulo: String = "",
+> app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:6:    val descripcion: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:7:    val enlace: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:8:    val tipo: String = "LINK",
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:9:    val autorId: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:10:    val autorNombre: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:11:    val fecha: Long = System.currentTimeMillis()
+  app\src\main\java\com\example\proyectodesdisint\model\MaterialApoyo.kt:12:)
+  app\src\main\java\com\example\proyectodesdisint\model\Tarea.kt:3:data class Tarea(
+  app\src\main\java\com\example\proyectodesdisint\model\Tarea.kt:4:    val id: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\Tarea.kt:5:    val titulo: String = "",
+> app\src\main\java\com\example\proyectodesdisint\model\Tarea.kt:6:    val descripcion: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\Tarea.kt:7:    val fecha: String = ""
+  app\src\main\java\com\example\proyectodesdisint\model\Tarea.kt:8:)
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:3:data class Task(
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:4:    var id: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:5:    var titulo: String = "",
+> app\src\main\java\com\example\proyectodesdisint\model\Task.kt:6:    var descripcion: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:7:    var fecha: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:8:    var hora: String = "",
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:9:    var completado: Boolean = false,
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:10:    var completionTime: Long? = null,
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:11:    var documentId: String = "",
+> app\src\main\java\com\example\proyectodesdisint\model\Task.kt:12:    var prioridad: String = "Media" // Alta, Media, Baja
+  app\src\main\java\com\example\proyectodesdisint\model\Task.kt:13:)
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:36:    var selectedTime by remember { mutableStateOf("") }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:37:    var showDialog by remember { mutableStateOf(false) }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:38:    var titulo by remember { mutableStateOf("") }
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:39:    var descripcion by remember { mutableStateOf("") }
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:40:    var prioridad by remember { mutableStateOf("Media") }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:41:
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:42:    val formatter = remember {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:43:        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:44:            timeZone = TimeZone.getTimeZone("UTC")
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:45:        }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:46:    }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:47:
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:48:    LaunchedEffect(datePickerState.selectedDateMillis) {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:49:        val millis = datePickerState.selectedDateMillis
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:50:        selectedDate = if (millis != null) 
+formatter.format(Date(millis)) else ""
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:51:    }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:52:
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:115:                }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:116:
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:117:                items(tasksForDay.sortedBy { it.hora }) { task ->
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:118:                    val pColor = when (task.prioridad) {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:119:                        "Alta" -> Color(0xFFFF4B66)
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:120:                        "Baja" -> Color(0xFF00BFA5)
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:121:                        else -> MaterialTheme.colorScheme.primary
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:122:                    }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:123:
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:124:                    Card(
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:125:                        modifier = 
+Modifier.fillMaxWidth().padding(vertical = 4.dp),
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:126:                        shape = RoundedCornerShape(12.dp),
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:127:                        colors = CardDefaults.cardColors(containerColor 
+= MaterialTheme.colorScheme.surface)
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:128:                    ) {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:129:                        Row(modifier = Modifier.padding(12.dp), 
+verticalAlignment = Alignment.CenterVertically) {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:130:                            Box(modifier = 
+Modifier.width(4.dp).height(30.dp).background(pColor, RoundedCornerShape(2.dp)))
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:133:                                Text(task.titulo, style = 
+MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:134:                                Text(task.hora, style = 
+MaterialTheme.typography.labelSmall, color = pColor)
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:135:                            }
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:136:                            if (task.prioridad == "Alta") {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:137:                                Icon(Icons.Default.PriorityHigh, null, 
+tint = pColor, modifier = Modifier.size(16.dp))
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:138:                            }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:139:                        }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:140:                    }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:141:                }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:142:            }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:143:        }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:144:    }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:145:
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:146:    if (showDialog) {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:147:        AlertDialog(
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:148:            onDismissRequest = { showDialog = false },
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:149:            title = { Text("Nueva Tarea") },
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:150:            text = {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:151:                Column(verticalArrangement = 
+Arrangement.spacedBy(8.dp)) {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:152:                    OutlinedTextField(value = titulo, onValueChange = { 
+titulo = it }, label = { Text("TÃtulo") }, modifier = Modifier.fillMaxWidth())
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:153:                    OutlinedTextField(value = descripcion, 
+onValueChange = { descripcion = it }, label = { Text("DescripciÃ³n") }, modifier = Modifier.fillMaxWidth())
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:154:                    TimePickerField(value = selectedTime, label = 
+"Hora", onValueChange = { selectedTime = it })
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:155:                    
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:156:                    Text("Prioridad", style = 
+MaterialTheme.typography.labelLarge)
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:157:                    Row(modifier = Modifier.fillMaxWidth(), 
+horizontalArrangement = Arrangement.SpaceBetween) {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:158:                        listOf("Baja", "Media", "Alta").forEach { p ->
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:159:                            FilterChip(selected = prioridad == p, 
+onClick = { prioridad = p }, label = { Text(p) })
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:160:                        }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:161:                    }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:162:                }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:163:            },
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:164:            confirmButton = {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:165:                Button(
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:166:                    onClick = {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:167:                        if (titulo.isNotBlank()) {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:168:                            viewModel.addTask(Task(
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:169:                                id = 
+System.currentTimeMillis().toString(),
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:170:                                titulo = titulo,
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:171:                                descripcion = descripcion,
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:172:                                fecha = selectedDate,
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:173:                                hora = selectedTime,
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:174:                                prioridad = prioridad
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:175:                            ))
+> app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:176:                            titulo = ""; descripcion = ""; selectedTime 
+= ""; showDialog = false
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:177:                        }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:178:                    }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:179:                ) { Text("Guardar") }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:180:            },
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:181:            dismissButton = { TextButton(onClick = { showDialog = false 
+}) { Text("Cancelar") } }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:182:        )
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:183:    }
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:184:}
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:185:
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:186:private fun parseHourForSorting(value: String): Int? {
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:187:    val parts = value.trim().split(":")
+  app\src\main\java\com\example\proyectodesdisint\ui\CalendarScreen.kt:188:    if (parts.size != 2) return null
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:44:) {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:45:
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:46:    var filter by remember { mutableStateOf("TODAY") }
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:47:    var isCreatingTask by remember { mutableStateOf(false) }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:48:    var selectedTask by remember { mutableStateOf<Task?>(null) }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:49:
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:50:    val context = LocalContext.current
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:51:    val viewModel: HomeViewModel = viewModel(factory = 
+HomeViewModelFactory(context))
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:52:    val tasks by viewModel.tasks.collectAsState()
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:53:    val suggestion by viewModel.suggestion.collectAsState()
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:54:    val recommendedTime = viewModel.getRecommendedTime()
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:55:    val today = 
+java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:56:
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:57:    Column(
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:58:        modifier = Modifier
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:59:            .fillMaxSize()
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:157:        }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:158:
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:159:        FloatingActionButton(
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:160:            onClick = { isCreatingTask = true },
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:161:            containerColor = MaterialTheme.colorScheme.primary,
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:162:            modifier = Modifier.align(Alignment.End).padding(top = 16.dp)
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:163:        ) {
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:164:            Icon(Icons.Default.Add, contentDescription = "Nueva Tarea", 
+tint = Color.White)
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:165:        }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:166:    }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:167:
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:168:    // Dialog for Add/Edit
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:169:    if (selectedTask != null || isCreatingTask) {
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:170:        val taskToEdit = selectedTask ?: Task(titulo = "", descripcion = 
+"", fecha = today, hora = "", prioridad = "Media")
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:171:        var titulo by remember { mutableStateOf(taskToEdit.titulo) }
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:172:        var descripcion by remember { 
+mutableStateOf(taskToEdit.descripcion) }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:173:        var hora by remember { mutableStateOf(taskToEdit.hora) }
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:174:        var prioridad by remember { mutableStateOf(taskToEdit.prioridad) }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:175:
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:176:        AlertDialog(
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:177:            onDismissRequest = { selectedTask = null; isCreatingTask = 
+false },
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:178:            title = { Text(if (selectedTask != null) "Editar Tarea" else 
+"Nueva Tarea") },
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:179:            text = {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:180:                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:181:                    OutlinedTextField(value = titulo, onValueChange = { 
+titulo = it }, label = { Text("TÃƒÂtulo") }, modifier = Modifier.fillMaxWidth())
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:182:                    OutlinedTextField(value = descripcion, onValueChange = 
+{ descripcion = it }, label = { Text("DescripciÃƒÂ³n") }, modifier = Modifier.fillMaxWidth())
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:183:                    TimePickerField(value = hora, label = "Hora", 
+onValueChange = { hora = it })
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:184:                    Text("Prioridad", style = 
+MaterialTheme.typography.labelLarge)
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:185:                    Row(modifier = Modifier.fillMaxWidth(), 
+horizontalArrangement = Arrangement.SpaceBetween) {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:186:                        listOf("Baja", "Media", "Alta").forEach { p ->
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:187:                            FilterChip(selected = prioridad == p, onClick = 
+{ prioridad = p }, label = { Text(p) })
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:188:                        }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:189:                    }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:190:                }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:191:            },
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:192:            confirmButton = {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:193:                Button(onClick = {
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:194:                    val finalTask = taskToEdit.copy(titulo = titulo, 
+descripcion = descripcion, hora = hora, prioridad = prioridad)
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:195:                    if (selectedTask != null) 
+viewModel.updateTask(finalTask) else viewModel.addTask(finalTask)
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:196:                    selectedTask = null; isCreatingTask = false
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:197:                }) { Text("Guardar") }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:198:            },
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:199:            dismissButton = { TextButton(onClick = { selectedTask = null; 
+isCreatingTask = false }) { Text("Cancelar") } }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:200:        )
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:201:    }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:202:}
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:203:
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:204:@Composable
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:205:fun EnhancedTaskItem(task: Task, onToggle: () -> Unit, onDelete: () -> 
+Unit, onEdit: (Task) -> Unit) {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:206:    var offsetX by remember { mutableStateOf(0f) }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:207:    val animatedOffset by animateFloatAsState(offsetX)
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:208:    val priorityColor = when (task.prioridad) {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:209:        "Alta" -> Color(0xFFFF4B66)
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:210:        "Baja" -> Color(0xFF00BFA5)
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:211:        else -> MaterialTheme.colorScheme.primary
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:212:    }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:213:
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:214:    Box {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:215:        // Delete Background
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:216:        if (offsetX > 50f) {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:217:            Card(
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:218:                modifier = Modifier.matchParentSize().padding(vertical = 
+4.dp),
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:219:                colors = CardDefaults.cardColors(containerColor = 
+Color.Red.copy(alpha = 0.8f)),
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:220:                shape = RoundedCornerShape(16.dp)
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:259:                        color = if (task.completado) Color.Gray else 
+Color.Unspecified,
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:260:                        textDecoration = if (task.completado) 
+androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:261:                    )
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:262:                    if (task.descripcion.isNotEmpty()) {
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:263:                        Text(task.descripcion, style = 
+MaterialTheme.typography.bodySmall, color = Color.Gray, maxLines = 1)
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:264:                    }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:265:                    Row(verticalAlignment = Alignment.CenterVertically) {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:266:                        Text(task.hora, style = 
+MaterialTheme.typography.labelSmall, color = priorityColor)
+> app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:267:                        if (task.prioridad == "Alta") {
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:268:                            Spacer(Modifier.width(4.dp))
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:269:                            Icon(Icons.Default.PriorityHigh, null, tint = 
+priorityColor, modifier = Modifier.size(12.dp))
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:270:                        }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:271:                    }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:272:                }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:273:                
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:274:                // Priority Strip
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:275:                Box(modifier = 
+Modifier.width(4.dp).height(40.dp).background(priorityColor, RoundedCornerShape(2.dp)))
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:276:            }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:277:        }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:278:    }
+  app\src\main\java\com\example\proyectodesdisint\ui\HomeScreen.kt:279:}
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:297:            onSave = { title, description, link ->
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:298:                val material = MaterialApoyo(
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:299:                    titulo = title.trim(),
+> app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:300:                    descripcion =
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:301:                        description.trim(),
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:302:                    enlace = normalizeUrl(
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:303:                        link.trim()
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:304:                    ),
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:305:                    tipo = "LINK",
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:306:                    autorId =
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:307:                        firebaseUser?.uid.orEmpty(),
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:308:                    autorNombre =
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:309:                        currentUser.nombre
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:310:                            .ifBlank {
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:311:                                currentUser.role
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:312:                            }
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:381:                    fontWeight = FontWeight.Bold
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:382:                )
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:383:
+> app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:384:                if (material.descripcion.isNotBlank()) {
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:385:                    Text(
+> app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:386:                        text = material.descripcion,
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:387:                        style =
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:388:                            MaterialTheme.typography.bodySmall,
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:389:                        color =
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:390:                            MaterialTheme.colorScheme
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:391:                                .onSurfaceVariant
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:392:                    )
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:393:                }
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:394:
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:395:                Spacer(
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:396:                    modifier = Modifier.height(4.dp)
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:397:                )
+  app\src\main\java\com\example\proyectodesdisint\ui\MaterialSupportScreen.kt:398:
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:43:                      "data": {
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:44:                        "documentId": "${createdTask.documentId}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:45:                        "titulo": "${createdTask.titulo}",
+> app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:46:                        "descripcion": 
+"${createdTask.descripcion}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:47:                        "fecha": "${createdTask.fecha}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:48:                        "hora": "${createdTask.hora}",
+> app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:49:                        "prioridad": "${createdTask.prioridad}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:50:                        "completado": ${createdTask.completado}
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:51:                      }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:52:                    }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:53:                """.trimIndent()
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:54:
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:55:                wearSyncManager.sendEventToWatch(
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:56:                    json = json,
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:57:                    path = "/stream_event"
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:58:                )
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:59:            },
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:60:
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:61:            onFailure = { error ->
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:89:                      "data": {
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:90:                        "documentId": "${savedTask.documentId}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:91:                        "titulo": "${savedTask.titulo}",
+> app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:92:                        "descripcion": "${savedTask.descripcion}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:93:                        "fecha": "${savedTask.fecha}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:94:                        "hora": "${savedTask.hora}",
+> app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:95:                        "prioridad": "${savedTask.prioridad}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:96:                        "completado": ${savedTask.completado},
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:97:                        "completionTime": 
+${savedTask.completionTime ?: 0}
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:98:                      }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:99:                    }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:100:                """.trimIndent()
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:101:
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:102:                wearSyncManager.sendEventToWatch(
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:103:                    json = json,
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:104:                    path = "/stream_event"
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:105:                )
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:106:            },
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:107:
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:156:                      "data": {
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:157:                        "documentId": "${updatedTask.documentId}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:158:                        "titulo": "${updatedTask.titulo}",
+> app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:159:                        "descripcion": 
+"${updatedTask.descripcion}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:160:                        "fecha": "${updatedTask.fecha}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:161:                        "hora": "${updatedTask.hora}",
+> app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:162:                        "prioridad": "${updatedTask.prioridad}",
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:163:                        "completado": ${updatedTask.completado},
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:164:                        "completionTime": 
+${updatedTask.completionTime ?: 0}
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:165:                      }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:166:                    }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:167:                """.trimIndent()
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:168:
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:169:                wearSyncManager.sendEventToWatch(
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:170:                    json = json,
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:171:                    path = "/stream_event"
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:172:                )
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:173:            },
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\HomeViewModel.kt:174:
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:21:        }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:22:    }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:23:
+> app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:24:    fun agregarTarea(titulo: String, descripcion: String, fecha: 
+String) {
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:25:        viewModelScope.launch {
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:26:            val tarea = Task(
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:27:                titulo = titulo,
+> app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:28:                descripcion = descripcion,
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:29:                fecha = fecha
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:30:            )
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:31:            repo.agregarTarea(tarea)
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:32:            cargarTareas()
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:33:        }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:34:    }
+  app\src\main\java\com\example\proyectodesdisint\viewmodel\TareaViewModel.kt:35:}
+
+

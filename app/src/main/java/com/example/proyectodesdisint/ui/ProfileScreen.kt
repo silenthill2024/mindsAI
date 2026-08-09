@@ -52,6 +52,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.proyectodesdisint.model.UserProfile
 import com.example.proyectodesdisint.ui.theme.ThemeState
+import com.example.proyectodesdisint.ui.theme.ColorblindType
 import com.example.proyectodesdisint.ui.components.LetterAvatar
 import com.example.proyectodesdisint.utils.GravatarHelper
 import com.example.proyectodesdisint.viewmodel.AuthViewModel
@@ -657,6 +658,34 @@ fun ProfileScreen(
                         Text("Modo oscuro")
                     }
                     Switch(checked = ThemeState.isDarkTheme, onCheckedChange = { ThemeState.isDarkTheme = it })
+                }
+
+                // Configuración de Daltonismo
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                
+                Text(
+                    "Modo Daltonismo",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf(
+                        "Normal" to ColorblindType.NONE,
+                        "Prot." to ColorblindType.PROTANOPIA,
+                        "Deut." to ColorblindType.DEUTERANOPIA,
+                        "Trit." to ColorblindType.TRITANOPIA
+                    ).forEach { (label, type) ->
+                        FilterChip(
+                            selected = ThemeState.colorblindType == type,
+                            onClick = { ThemeState.colorblindType = type },
+                            label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
 
                 // Admin/Professor Panel moved here

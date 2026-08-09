@@ -5,10 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
@@ -29,12 +27,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun AdminPanelScreen(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
-    val user = FirebaseAuth.getInstance().currentUser
+    val auth = FirebaseAuth.getInstance()
+    val user = auth.currentUser
     var currentUserProfile by remember { mutableStateOf<UserProfile?>(null) }
-    var users by remember { mutableStateOf<List<UserProfile>>(emptyList()) }
+    var userList by remember { mutableStateOf<List<UserProfile>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     
-    // Estado para el diálogo de asignar tarea
     var showAssignDialog by remember { mutableStateOf(false) }
     var selectedUserForTask by remember { mutableStateOf<UserProfile?>(null) }
 
@@ -44,8 +42,14 @@ fun AdminPanelScreen(navController: NavController) {
                 currentUserProfile = doc.toObject(UserProfile::class.java)
             }
         }
-        db.collection("users").addSnapshotListener { snapshot, _ ->
-            users = snapshot?.documents?.mapNotNull { it.toObject(UserProfile::class.java)?.copy(uid = it.id) } ?: emptyList()
+        db.collection("users").addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                isLoading = false
+                return@addSnapshotListener
+            }
+            if (snapshot != null) {
+                userList = snapshot.toObjects(UserProfile::class.java)
+            }
             isLoading = false
         }
     }
@@ -53,7 +57,7 @@ fun AdminPanelScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (currentUserProfile?.isAdmin == true) "Panel de Administración" else "Panel de Usuarios", fontWeight = FontWeight.Bold) },
+                title = { Text("Panel de Administración") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -63,30 +67,23 @@ fun AdminPanelScreen(navController: NavController) {
         }
     ) { padding ->
         if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item {
-                    Text(if (currentUserProfile?.isAdmin == true) "Gestión de Usuarios" else "Directorio de Usuarios", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                
-                items(users) { user ->
-                    UserAdminCard(
-                        user = user, 
-                        canEdit = currentUserProfile?.isAdmin == true,
-                        isProfeOrAdmin = currentUserProfile?.role?.uppercase() == "ADMIN" || currentUserProfile?.role?.uppercase() == "PROFE",
-                        onRoleChange = { newRole ->
-                            db.collection("users").document(user.uid).update("role", newRole)
-                        },
+                items(userList) { itemUser ->
+                    UserItem(
+                        user = itemUser,
+                        canEdit = currentUserProfile?.role == "ADMIN",
                         onAssignTask = {
-                            selectedUserForTask = user
+                            selectedUserForTask = itemUser
                             showAssignDialog = true
                         }
                     )
@@ -109,57 +106,42 @@ fun AdminPanelScreen(navController: NavController) {
 }
 
 @Composable
-fun UserAdminCard(
+fun UserItem(
     user: UserProfile, 
     canEdit: Boolean, 
-    isProfeOrAdmin: Boolean,
-    onRoleChange: (String) -> Unit,
     onAssignTask: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = if (user.role.uppercase() == "ADMIN") Icons.Default.Security else Icons.Default.People,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                tint = if (user.role.uppercase() == "ADMIN") MaterialTheme.colorScheme.primary else Color.Gray
+            )
+            Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(user.nombre.ifBlank { "Sin nombre" }, fontWeight = FontWeight.Bold)
-                Text(user.email, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                if (canEdit) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("ALUMNO", "PROFE", "ADMIN").forEach { role ->
-                            FilterChip(
-                                selected = user.role.uppercase() == role,
-                                onClick = { onRoleChange(role) },
-                                label = { Text(role, style = MaterialTheme.typography.labelSmall) }
-                            )
-                        }
-                    }
-                } else {
-                    Text("Rol: ${user.role}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-                }
-            }
-            
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Botón para que el PROFESOR asigne tarea
-                if (isProfeOrAdmin) {
-                    IconButton(onClick = onAssignTask) {
-                        Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = "Asignar Tarea", tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
-                
-                Icon(
-                    imageVector = if (user.role.uppercase() == "ADMIN") Icons.Default.Security else Icons.Default.People,
-                    contentDescription = null,
-                    tint = if (user.role.uppercase() == "ADMIN") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                Text(text = user.nombre.ifEmpty { "Usuario sin nombre" }, fontWeight = FontWeight.Bold)
+                Text(text = user.email, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "Rol: ${user.role}", 
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
+            }
+            if (canEdit) {
+                IconButton(onClick = onAssignTask) {
+                    Icon(Icons.Default.Assignment, contentDescription = "Asignar Tarea")
+                }
             }
         }
     }
@@ -178,20 +160,36 @@ fun AssignTaskDialog(
         onDismissRequest = onDismiss,
         title = { Text("Asignar Tarea a ${targetUser.nombre}") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Instrucciones") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+            Column {
+                OutlinedTextField(
+                    value = titulo,
+                    onValueChange = { titulo = it },
+                    label = { Text("Título") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    label = { Text("Descripción") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    if (titulo.isNotBlank()) {
-                        onConfirm(Task(titulo = titulo, descripcion = desc))
-                    }
-                }
-            ) { Text("Asignar") }
+                    onConfirm(Task(titulo = titulo, descripcion = desc))
+                },
+                enabled = titulo.isNotBlank()
+            ) {
+                Text("Confirmar")
+            }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
     )
 }

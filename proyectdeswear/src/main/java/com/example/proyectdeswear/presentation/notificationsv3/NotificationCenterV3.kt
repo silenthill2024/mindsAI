@@ -1,9 +1,7 @@
-﻿package com.example.proyectdeswear.presentation.notificationsv3
+package com.example.proyectdeswear.presentation.notificationsv3
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,25 +12,66 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Text
 import com.example.proyectdeswear.presentation.Task
-import com.example.proyectdeswear.presentation.notificationsv3.components.FuturisticNotificationCard
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+
+private val Background =
+    Color(0xFF080A12)
+
+private val Surface =
+    Color(0xFF141722)
+
+private val TextPrimary =
+    Color.White
+
+private val TextSecondary =
+    Color(0xFF969BAB)
+
+private val Purple =
+    Color(0xFF8B7CFF)
+
+private val Warning =
+    Color(0xFFFFB74D)
+
+private val Danger =
+    Color(0xFFFF6B6B)
+
+private val MaterialBlue =
+    Color(0xFF67B7FF)
+
+private val CommentPurple =
+    Color(0xFFB69CFF)
+
+enum class RelevantNotificationType {
+    COMMENT,
+    TASK_DUE,
+    MATERIAL
+}
+
+data class RelevantNotification(
+    val id: String,
+    val type: RelevantNotificationType,
+    val title: String,
+    val message: String,
+    val timeLabel: String = "",
+    val task: Task? = null
+)
 
 @Composable
 fun NotificationCenterV3(
@@ -42,220 +81,550 @@ fun NotificationCenterV3(
     onDelete: (Task) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val notifications = remember(tasks) {
-        NotificationEngine.createNotifications(tasks)
-    }
 
-    var expandedId by remember {
-        mutableStateOf<String?>(null)
-    }
+    /*
+     * Por ahora las notificaciones reales disponibles
+     * desde este módulo son las tareas.
+     *
+     * COMMENT y MATERIAL quedan preparados para
+     * recibir eventos desde Firebase/API.
+     */
+    val notifications =
+        buildTaskNotifications(
+            tasks = tasks
+        )
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(NotificationV3Colors.Background)
+            .background(
+                Background
+            )
     ) {
-        Canvas(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            drawCircle(
-                color = NotificationV3Colors.Purple.copy(alpha = 0.08f),
-                radius = size.minDimension * 0.43f,
-                center = Offset(
-                    size.width * 0.15f,
-                    size.height * 0.18f
-                )
-            )
-
-            drawCircle(
-                color = NotificationV3Colors.Cyan.copy(alpha = 0.05f),
-                radius = size.minDimension * 0.40f,
-                center = Offset(
-                    size.width * 0.90f,
-                    size.height * 0.82f
-                )
-            )
-        }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(
-                    top = 18.dp,
-                    bottom = 30.dp
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            NotificationHeader(
-                count = notifications.size,
-                onBack = onBack
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            IntelligentSummary(
-                notifications = notifications
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            notifications.forEach { notification ->
-                FuturisticNotificationCard(
-                    notification = notification,
-                    expanded = expandedId == notification.id,
-                    onClick = {
-                        expandedId =
-                            if (expandedId == notification.id) {
-                                null
-                            } else {
-                                notification.id
-                            }
-                    },
-                    onComplete = {
-                        notification.task?.let { task ->
-                            onComplete(task)
-                            expandedId = null
-                        }
-                    },
-                    onDelete = {
-                        notification.task?.let { task ->
-                            onDelete(task)
-                            expandedId = null
-                        }
-                    }
+                    horizontal = 16.dp
                 )
+        ) {
 
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(
+                modifier =
+                    Modifier.height(9.dp)
+            )
+
+            NotificationsHeader(
+                count =
+                    notifications.size,
+                onBack =
+                    onBack
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
+            )
+
+            if (
+                notifications.isEmpty()
+            ) {
+
+                EmptyNotifications()
+
+            } else {
+
+                LazyColumn(
+                    modifier =
+                        Modifier.fillMaxSize(),
+                    verticalArrangement =
+                        Arrangement.spacedBy(
+                            7.dp
+                        )
+                ) {
+
+                    items(
+                        notifications,
+                        key = {
+                            it.id
+                        }
+                    ) { notification ->
+
+                        RelevantNotificationCard(
+                            notification =
+                                notification
+                        )
+                    }
+
+                    item {
+
+                        Spacer(
+                            modifier =
+                                Modifier.height(20.dp)
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun NotificationHeader(
+private fun NotificationsHeader(
     count: Int,
     onBack: () -> Unit
 ) {
+
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 25.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier.fillMaxWidth(),
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+        verticalAlignment =
+            Alignment.CenterVertically
     ) {
+
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(34.dp)
                 .background(
-                    NotificationV3Colors.SurfaceLight,
+                    Surface,
                     CircleShape
                 )
-                .clickable(
-                    interactionSource = remember {
-                        MutableInteractionSource()
-                    },
-                    indication = null,
-                    onClick = onBack
-                ),
-            contentAlignment = Alignment.Center
+                .clickable {
+                    onBack()
+                },
+            contentAlignment =
+                Alignment.Center
         ) {
+
             Text(
-                text = "<",
-                color = NotificationV3Colors.TextPrimary,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold
+                text = "‹",
+                color =
+                    TextPrimary,
+                fontSize = 25.sp,
+                fontWeight =
+                    FontWeight.Bold
             )
         }
 
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment =
+                Alignment.CenterHorizontally
         ) {
+
             Text(
-                text = "Notificaciones",
-                color = NotificationV3Colors.TextPrimary,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
+                text =
+                    "Notificaciones",
+                color =
+                    TextPrimary,
+                fontSize = 14.sp,
+                fontWeight =
+                    FontWeight.Bold
             )
 
             Text(
-                text = "$count activas",
-                color = NotificationV3Colors.Purple,
+                text =
+                    if (count == 1) {
+                        "1 importante"
+                    } else {
+                        "$count importantes"
+                    },
+                color =
+                    TextSecondary,
                 fontSize = 8.sp
             )
         }
 
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(34.dp)
                 .background(
-                    NotificationV3Colors.Purple.copy(alpha = 0.16f),
+                    Purple.copy(
+                        alpha = 0.15f
+                    ),
                     CircleShape
                 ),
-            contentAlignment = Alignment.Center
+            contentAlignment =
+                Alignment.Center
         ) {
+
             Text(
-                text = count.coerceAtMost(9).toString(),
-                color = NotificationV3Colors.Lavender,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold
+                text =
+                    count
+                        .coerceAtMost(9)
+                        .toString(),
+                color =
+                    Purple,
+                fontSize = 11.sp,
+                fontWeight =
+                    FontWeight.Bold
             )
         }
     }
 }
 
 @Composable
-private fun IntelligentSummary(
-    notifications: List<SmartNotification>
+private fun RelevantNotificationCard(
+    notification:
+        RelevantNotification
 ) {
-    val important = notifications.count {
-        it.priority >= 70
-    }
 
-    Column(
+    val accent =
+        when (
+            notification.type
+        ) {
+
+            RelevantNotificationType.COMMENT ->
+                CommentPurple
+
+            RelevantNotificationType.TASK_DUE ->
+                Warning
+
+            RelevantNotificationType.MATERIAL ->
+                MaterialBlue
+        }
+
+    val icon =
+        when (
+            notification.type
+        ) {
+
+            RelevantNotificationType.COMMENT ->
+                "C"
+
+            RelevantNotificationType.TASK_DUE ->
+                "!"
+
+            RelevantNotificationType.MATERIAL ->
+                "M"
+        }
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 25.dp)
             .background(
-                NotificationV3Colors.Surface.copy(alpha = 0.96f),
-                RoundedCornerShape(24.dp)
+                Surface,
+                RoundedCornerShape(
+                    16.dp
+                )
             )
-            .padding(14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(
+                horizontal = 11.dp,
+                vertical = 10.dp
+            ),
+        verticalAlignment =
+            Alignment.CenterVertically
     ) {
-        Text(
-            text = "RESUMEN INTELIGENTE",
-            color = NotificationV3Colors.Cyan,
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Bold
+
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(
+                    accent.copy(
+                        alpha = 0.18f
+                    ),
+                    CircleShape
+                ),
+            contentAlignment =
+                Alignment.Center
+        ) {
+
+            Text(
+                text = icon,
+                color = accent,
+                fontSize = 12.sp,
+                fontWeight =
+                    FontWeight.ExtraBold
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(
+                    start = 9.dp
+                )
+        ) {
+
+            Text(
+                text =
+                    notification.title,
+                color =
+                    TextPrimary,
+                fontSize = 11.sp,
+                fontWeight =
+                    FontWeight.Bold,
+                maxLines = 1
+            )
+
+            Spacer(
+                modifier =
+                    Modifier.height(2.dp)
+            )
+
+            Text(
+                text =
+                    notification.message,
+                color =
+                    TextSecondary,
+                fontSize = 8.sp,
+                maxLines = 2
+            )
+
+            if (
+                notification
+                    .timeLabel
+                    .isNotBlank()
+            ) {
+
+                Spacer(
+                    modifier =
+                        Modifier.height(
+                            3.dp
+                        )
+                )
+
+                Text(
+                    text =
+                        notification
+                            .timeLabel,
+                    color = accent,
+                    fontSize = 8.sp,
+                    fontWeight =
+                        FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyNotifications() {
+
+    Column(
+        modifier =
+            Modifier.fillMaxSize(),
+        horizontalAlignment =
+            Alignment.CenterHorizontally,
+        verticalArrangement =
+            Arrangement.Center
+    ) {
+
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    Purple.copy(
+                        alpha = 0.12f
+                    ),
+                    CircleShape
+                ),
+            contentAlignment =
+                Alignment.Center
+        ) {
+
+            Text(
+                text = "✓",
+                color =
+                    Purple,
+                fontSize = 21.sp,
+                fontWeight =
+                    FontWeight.Bold
+            )
+        }
+
+        Spacer(
+            modifier =
+                Modifier.height(9.dp)
         )
 
-        Spacer(modifier = Modifier.height(7.dp))
-
         Text(
-            text = notifications.size.toString(),
-            color = NotificationV3Colors.TextPrimary,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
+            text =
+                "Todo tranquilo",
+            color =
+                TextPrimary,
+            fontSize = 13.sp,
+            fontWeight =
+                FontWeight.Bold
         )
 
         Text(
-            text = "eventos activos",
-            color = NotificationV3Colors.TextSecondary,
-            fontSize = 9.sp
-        )
-
-        Spacer(modifier = Modifier.height(5.dp))
-
-        Text(
-            text = "$important requieren atencion",
-            color = if (important > 0) {
-                NotificationV3Colors.Orange
-            } else {
-                NotificationV3Colors.Green
-            },
-            fontSize = 8.sp,
-            textAlign = TextAlign.Center
+            text =
+                "Nada importante por ahora",
+            color =
+                TextSecondary,
+            fontSize = 9.sp,
+            textAlign =
+                TextAlign.Center
         )
     }
+}
+
+private fun buildTaskNotifications(
+    tasks: List<Task>
+): List<RelevantNotification> {
+
+    val today =
+        Calendar.getInstance()
+
+    val tomorrow =
+        Calendar.getInstance().apply {
+            add(
+                Calendar.DAY_OF_YEAR,
+                1
+            )
+        }
+
+    return tasks
+        .filter {
+            !it.completado
+        }
+        .mapNotNull { task ->
+
+            val taskDate =
+                parseTaskDate(
+                    task.fecha
+                )
+                    ?: return@mapNotNull null
+
+            val taskCalendar =
+                Calendar.getInstance()
+                    .apply {
+                        time = taskDate
+                    }
+
+            val isToday =
+                sameDay(
+                    taskCalendar,
+                    today
+                )
+
+            val isTomorrow =
+                sameDay(
+                    taskCalendar,
+                    tomorrow
+                )
+
+            val isOverdue =
+                taskCalendar.before(
+                    today
+                ) &&
+                !isToday
+
+            when {
+
+                isOverdue ->
+
+                    RelevantNotification(
+                        id =
+                            "overdue_${task.documentId}",
+                        type =
+                            RelevantNotificationType.TASK_DUE,
+                        title =
+                            "Tarea vencida",
+                        message =
+                            task.titulo,
+                        timeLabel =
+                            "Requiere atención",
+                        task = task
+                    )
+
+                isToday ->
+
+                    RelevantNotification(
+                        id =
+                            "today_${task.documentId}",
+                        type =
+                            RelevantNotificationType.TASK_DUE,
+                        title =
+                            "Vence hoy",
+                        message =
+                            task.titulo,
+                        timeLabel =
+                            task.hora
+                                .ifBlank {
+                                    "Hoy"
+                                },
+                        task = task
+                    )
+
+                isTomorrow ->
+
+                    RelevantNotification(
+                        id =
+                            "tomorrow_${task.documentId}",
+                        type =
+                            RelevantNotificationType.TASK_DUE,
+                        title =
+                            "Vence mañana",
+                        message =
+                            task.titulo,
+                        timeLabel =
+                            task.hora
+                                .ifBlank {
+                                    "Mañana"
+                                },
+                        task = task
+                    )
+
+                else ->
+                    null
+            }
+        }
+}
+
+private fun parseTaskDate(
+    value: String
+): Date? {
+
+    if (
+        value.isBlank()
+    ) {
+        return null
+    }
+
+    val formats =
+        listOf(
+            "yyyy-MM-dd",
+            "dd/MM/yyyy",
+            "dd-MM-yyyy"
+        )
+
+    formats.forEach { format ->
+
+        try {
+
+            return SimpleDateFormat(
+                format,
+                Locale.getDefault()
+            ).apply {
+                isLenient = false
+            }.parse(value)
+
+        } catch (_: Exception) {
+        }
+    }
+
+    return null
+}
+
+private fun sameDay(
+    first: Calendar,
+    second: Calendar
+): Boolean {
+
+    return first.get(
+        Calendar.YEAR
+    ) ==
+        second.get(
+            Calendar.YEAR
+        ) &&
+        first.get(
+            Calendar.DAY_OF_YEAR
+        ) ==
+        second.get(
+            Calendar.DAY_OF_YEAR
+        )
 }
