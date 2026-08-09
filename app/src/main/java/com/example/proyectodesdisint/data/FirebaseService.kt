@@ -4,6 +4,8 @@ import com.example.proyectodesdisint.model.BlogPost
 import com.example.proyectodesdisint.model.BlogReply
 import com.example.proyectodesdisint.model.Task
 import com.example.proyectodesdisint.model.User
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlin.coroutines.resume
@@ -12,10 +14,15 @@ import kotlin.coroutines.suspendCoroutine
 class FirebaseService {
 
     private val db = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
 
-    private val tasksCollection = db.collection("tasks")
     private val blogsCollection = db.collection("blogs")
     private val usersCollection = db.collection("users")
+
+    private fun getTasksCollection(): CollectionReference? {
+        val uid = auth.currentUser?.uid ?: return null
+        return usersCollection.document(uid).collection("tareas")
+    }
 
     // =========================================================
     // TAREAS
@@ -26,7 +33,13 @@ class FirebaseService {
         onSuccess: (Task) -> Unit = {},
         onFailure: (Exception) -> Unit = {}
     ) {
-        val docRef = tasksCollection.document()
+        val collection = getTasksCollection()
+        if (collection == null) {
+            onFailure(IllegalStateException("Usuario no autenticado"))
+            return
+        }
+
+        val docRef = collection.document()
         val taskWithId = task.copy(documentId = docRef.id)
 
         docRef.set(taskWithId)
@@ -39,7 +52,13 @@ class FirebaseService {
     }
 
     fun listenTasks(onResult: (List<Task>) -> Unit) {
-        tasksCollection.addSnapshotListener { snapshot, error ->
+        val collection = getTasksCollection()
+        if (collection == null) {
+            onResult(emptyList())
+            return
+        }
+
+        collection.addSnapshotListener { snapshot, error ->
 
             if (error != null) {
                 onResult(emptyList())
@@ -61,6 +80,12 @@ class FirebaseService {
         onSuccess: (Task) -> Unit = {},
         onFailure: (Exception) -> Unit = {}
     ) {
+        val collection = getTasksCollection()
+        if (collection == null) {
+            onFailure(IllegalStateException("Usuario no autenticado"))
+            return
+        }
+
         if (task.documentId.isBlank()) {
             onFailure(
                 IllegalArgumentException(
@@ -70,7 +95,7 @@ class FirebaseService {
             return
         }
 
-        tasksCollection.document(task.documentId)
+        collection.document(task.documentId)
             .update(
                 mapOf(
                     "titulo" to task.titulo,
@@ -95,6 +120,12 @@ class FirebaseService {
         onSuccess: (String) -> Unit = {},
         onFailure: (Exception) -> Unit = {}
     ) {
+        val collection = getTasksCollection()
+        if (collection == null) {
+            onFailure(IllegalStateException("Usuario no autenticado"))
+            return
+        }
+
         if (documentId.isBlank()) {
             onFailure(
                 IllegalArgumentException(
@@ -104,7 +135,7 @@ class FirebaseService {
             return
         }
 
-        tasksCollection.document(documentId)
+        collection.document(documentId)
             .delete()
             .addOnSuccessListener {
                 onSuccess(documentId)
@@ -112,6 +143,39 @@ class FirebaseService {
             .addOnFailureListener { error ->
                 onFailure(error)
             }
+    }
+
+    // =========================================================
+    // ASIGNACIÓN Y COLABORACIÓN (NUEVO)
+    // =========================================================
+
+    /**
+     * Permite que un profesor o un compañero asigne una tarea a otro usuario.
+     * La tarea se guarda directamente en la colección del destinatario.
+     */
+    fun assignTaskToUser(
+        targetUid: String,
+        task: Task,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (targetUid.isBlank()) {
+            onFailure(IllegalArgumentException("ID de usuario destino no válido"))
+            return
+        }
+
+        // Apuntamos a la colección de tareas del DESTINATARIO
+        val docRef = usersCollection.document(targetUid).collection("tareas").document()
+        
+        val senderName = auth.currentUser?.displayName ?: "Un usuario"
+        val taskWithId = task.copy(
+            documentId = docRef.id,
+            descripcion = "${task.descripcion}\n\n[Asignada por: $senderName]".trim()
+        )
+
+        docRef.set(taskWithId)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
     }
 
     // =========================================================
@@ -159,6 +223,32 @@ class FirebaseService {
             .addOnFailureListener { error ->
                 onFailure(error)
             }
+    }
+
+    fun updateBlogPost(
+        blogId: String,
+        newTitle: String,
+        newContent: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        blogsCollection.document(blogId)
+            .update(mapOf(
+                "titulo" to newTitle,
+                "contenido" to newContent
+            ))
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun deleteBlogPost(
+        blogId: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        blogsCollection.document(blogId).delete()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
     }
 
     fun listenBlogReplies(
@@ -225,6 +315,30 @@ class FirebaseService {
             }
     }
 
+    fun updateBlogReply(
+        blogId: String,
+        replyId: String,
+        newText: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        blogsCollection.document(blogId).collection("replies").document(replyId)
+            .update("texto", newText)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun deleteBlogReply(
+        blogId: String,
+        replyId: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        blogsCollection.document(blogId).collection("replies").document(replyId).delete()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
     // =========================================================
     // PERFIL BÁSICO DEL AUTOR
     // =========================================================
@@ -252,137 +366,4 @@ class FirebaseService {
                     continuation.resume(null)
                 }
         }
-
-    // =========================================================
-    // EDICION Y MODERACION DEL BLOG
-    // =========================================================
-
-    fun updateBlogPost(
-        blogId: String,
-        newTitle: String,
-        newContent: String,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        blogsCollection
-            .document(blogId)
-            .update(
-                mapOf(
-                    "titulo" to newTitle,
-                    "contenido" to newContent
-                )
-            )
-            .addOnSuccessListener {
-                onSuccess()
-            }
-            .addOnFailureListener {
-                onFailure(it)
-            }
-    }
-
-    fun deleteBlogPost(
-        blogId: String,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        blogsCollection
-            .document(blogId)
-            .delete()
-            .addOnSuccessListener {
-                onSuccess()
-            }
-            .addOnFailureListener {
-                onFailure(it)
-            }
-    }
-
-    fun updateBlogReply(
-        blogId: String,
-        replyId: String,
-        newText: String,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        blogsCollection
-            .document(blogId)
-            .collection("replies")
-            .document(replyId)
-            .update(
-                "texto",
-                newText
-            )
-            .addOnSuccessListener {
-                onSuccess()
-            }
-            .addOnFailureListener {
-                onFailure(it)
-            }
-    }
-
-    fun deleteBlogReply(
-        blogId: String,
-        replyId: String,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        blogsCollection
-            .document(blogId)
-            .collection("replies")
-            .document(replyId)
-            .delete()
-            .addOnSuccessListener {
-                onSuccess()
-            }
-            .addOnFailureListener {
-                onFailure(it)
-            }
-    }
-
-    fun assignTaskToUser(
-        targetUid: String,
-        task: com.example.proyectodesdisint.model.Task,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        if (targetUid.isBlank()) {
-            onFailure(
-                IllegalArgumentException(
-                    "ID de usuario destino no valido"
-                )
-            )
-            return
-        }
-
-        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-
-        val docRef = db
-            .collection("users")
-            .document(targetUid)
-            .collection("tareas")
-            .document()
-
-        val senderName =
-            com.google.firebase.auth.FirebaseAuth
-                .getInstance()
-                .currentUser
-                ?.displayName
-                ?: "Un usuario"
-
-        val taskWithId = task.copy(
-            documentId = docRef.id,
-            descripcion = (
-                task.descripcion +
-                "\n\n[Asignada por: $senderName]"
-            ).trim()
-        )
-
-        docRef
-            .set(taskWithId)
-            .addOnSuccessListener {
-                onSuccess()
-            }
-            .addOnFailureListener {
-                onFailure(it)
-            }
-    }
 }

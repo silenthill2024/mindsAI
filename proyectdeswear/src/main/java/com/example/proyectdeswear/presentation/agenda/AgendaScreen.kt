@@ -25,7 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import com.example.proyectdeswear.presentation.Task
 import com.example.proyectdeswear.presentation.homepro.MindsAIColors
@@ -34,7 +34,7 @@ import com.example.proyectdeswear.presentation.homepro.MindsAIColors
 fun AgendaScreen(
     tasks: List<Task>,
     onDelete: (Task) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val pendingTasks = tasks
         .filter { !it.completado }

@@ -26,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -34,12 +35,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.proyectodesdisint.data.FirebaseService
 import com.example.proyectodesdisint.data.StudentAnalyticsEngine
+import com.example.proyectodesdisint.data.TaskVideoRecommendationEngine
 import com.example.proyectodesdisint.model.UserProfile
 import com.example.proyectodesdisint.ui.homev4.HomeV4Dashboard
+import com.example.proyectodesdisint.ui.youtube.YouTubeSuggestion
+import com.example.proyectodesdisint.ui.youtube.YouTubeSuggestionsCarousel
 import com.example.proyectodesdisint.viewmodel.HomeViewModel
 import com.example.proyectodesdisint.viewmodel.HomeViewModelFactory
-import com.example.proyectodesdisint.streaming.WearSyncManager
-import com.example.proyectodesdisint.streaming.WearApiClient
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -52,10 +54,6 @@ fun HomeV3Screen(
     val context = LocalContext.current
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(context.applicationContext))
     val tasks by homeViewModel.tasks.collectAsState()
-
-    val wearSyncManager = remember {
-        WearSyncManager(context.applicationContext)
-    }
     
     // Obtener el perfil para saber el rol
     val profileViewModel: com.example.proyectodesdisint.viewmodel.ProfileViewModel = viewModel(
@@ -63,28 +61,15 @@ fun HomeV3Screen(
     )
     val profile by profileViewModel.profile.collectAsState()
 
-    LaunchedEffect(profile.uid, profile.nombre, profile.role, profile.photoUrl) {
-        if (profile.uid.isNotBlank()) {
-
-            val wearUser =
-                com.example.proyectodesdisint.model.User(
-                    uid = profile.uid,
-                    nombre = profile.nombre,
-                    email = profile.email,
-                    role = profile.role,
-                    photoUrl = profile.photoUrl
-                )
-
-            wearSyncManager.syncUserSession(wearUser)
-            wearSyncManager.syncProfile(wearUser)
-
-            WearApiClient.registerUser(wearUser)
-        }
+    // Clima real
+    var weatherData by remember { mutableStateOf<com.example.proyectodesdisint.data.WeatherData?>(null) }
+    LaunchedEffect(profile.ciudad) {
+        // Por ahora usamos coordenadas fijas de Guadalajara si la ciudad es GDL, o CDMX como default
+        val lat = if (profile.ciudad.contains("Guadalajara", true)) 20.6597 else 19.4326
+        val lon = if (profile.ciudad.contains("Guadalajara", true)) -103.3496 else -99.1332
+        weatherData = com.example.proyectodesdisint.data.WeatherService.fetchWeather(lat, lon)
     }
 
-    LaunchedEffect(tasks) {
-        wearSyncManager.syncTasks(tasks)
-    }
     val userRole = profile.role.uppercase()
 
     // Estado para Admin: cambiar entre vista de Alumno y Profesor
@@ -108,11 +93,16 @@ fun HomeV3Screen(
             }
     }
 
-    // Estado para asignaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de tareas (Profesores)
+    // Estado para asignación de tareas (Profesores)
     var showAssignDialog by remember { mutableStateOf(false) }
     var userList by remember { mutableStateOf<List<UserProfile>>(emptyList()) }
     var isLoadingUsers by remember { mutableStateOf(false) }
-val activeRole = if (userRole == "ADMIN" && adminViewAsProfe) "PROFE" else userRole
+
+    val recommendedVideos = remember(tasks) {
+        TaskVideoRecommendationEngine.recommend(tasks = tasks)
+    }
+
+    val activeRole = if (userRole == "ADMIN" && adminViewAsProfe) "PROFE" else userRole
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -127,18 +117,19 @@ val activeRole = if (userRole == "ADMIN" && adminViewAsProfe) "PROFE" else userR
                     activeRole = activeRole,
                     viewAsProfe = adminViewAsProfe,
                     pendingTasks = tasks.count { !it.completado },
+                    weatherData = weatherData,
                     onViewTasks = { navController.navigate("tasks") },
                     onToggleAdminView = { adminViewAsProfe = !adminViewAsProfe }
                 )
             }
 
             if (activeRole == "PROFE") {
-                // VISTA ESPECÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂFICA PARA PROFESOR
+                // VISTA ESPECÍFICA PARA PROFESOR
                 item { ProfessorStatsDashboard(profile) }
                 
                 item { 
                     Text(
-                        "Acciones RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡pidas", 
+                        "Acciones Rápidas", 
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
@@ -161,7 +152,7 @@ val activeRole = if (userRole == "ADMIN" && adminViewAsProfe) "PROFE" else userR
                 }
 
                 item {
-                    SectionHeader("Alumnos Disponibles", onSeeAll = { /* TODO */ })
+                    SectionHeader("Alumnos Disponibles")
                 }
                 
                 item {
@@ -169,7 +160,7 @@ val activeRole = if (userRole == "ADMIN" && adminViewAsProfe) "PROFE" else userR
                 }
 
             } else if (activeRole == "ADMIN") {
-                // VISTA ESPECÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂFICA PARA ADMINISTRADOR
+                // VISTA ESPECÍFICA PARA ADMINISTRADOR
                 item { AdminControlPanel(
                     onManageUsers = { /* TODO */ },
                     onManageMaterials = { navController.navigate("materials") },
@@ -188,6 +179,7 @@ val activeRole = if (userRole == "ADMIN" && adminViewAsProfe) "PROFE" else userR
             } else {
                 // VISTA PARA ALUMNO (O ADMIN EN MODO ALUMNO)
                 item { HomeV4Dashboard(tasks = tasks, navController = navController) }
+                item { YouTubeSection(videos = recommendedVideos) }
                 item { 
                     DailyOverviewCard(
                         totalTasks = tasks.size,
@@ -224,65 +216,119 @@ private fun HomeV3Header(
     activeRole: String,
     viewAsProfe: Boolean,
     pendingTasks: Int,
+    weatherData: com.example.proyectodesdisint.data.WeatherData?,
     onViewTasks: () -> Unit,
     onToggleAdminView: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 20.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f)) { 
                 Text(
-                    text = if (userName.isNotBlank()) "Hola, $userName" else "MindsAI",
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = if (userName.isNotBlank()) "¡Hola, $userName!" else "¡Hola!",
+                    style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     text = when {
-                        activeRole == "PROFE" -> "GestiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Docente"
+                        activeRole == "PROFE" -> "Gestión Docente"
                         activeRole == "ADMIN" -> "Panel de Control"
-                        else -> if (pendingTasks == 0) "Sin tareas pendientes" else "Tienes $pendingTasks pendiente(s)"
+                        else -> if (pendingTasks == 0) "Todo al día por hoy" else "Tienes $pendingTasks tarea(s) pendiente(s)"
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-Spacer(Modifier.width(16.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                WeatherWidget(weatherData)
                 
                 if (role == "ADMIN") {
-                    IconButton(onClick = onToggleAdminView) {
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onToggleAdminView,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.SwapHoriz, 
                             contentDescription = "Cambiar Vista",
-                            tint = if (viewAsProfe) MaterialTheme.colorScheme.primary else Color.Gray
+                            tint = if (viewAsProfe) MaterialTheme.colorScheme.primary else Color.Gray,
+                            modifier = Modifier.size(24.dp)
                         )
-                    }
-                    Spacer(Modifier.width(8.dp))
-                }
-
-                if (role != "PROFE" && !(role == "ADMIN" && viewAsProfe)) {
-                    Button(
-                        onClick = onViewTasks,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Assignment, null)
-                        Spacer(Modifier.width(4.dp))
-                        Text("Tareas", fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
+
+        // Nuevo diseño del botón de tareas para alumnos, ubicado debajo del saludo para mejor accesibilidad
+        if (role != "PROFE" && !(role == "ADMIN" && viewAsProfe)) {
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = onViewTasks,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White
+                ),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Assignment, null)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Ver mis Tareas Pendientes", 
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+        }
     }
 }
+
+@Composable
+private fun WeatherWidget(weather: com.example.proyectodesdisint.data.WeatherData?) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)),
+        modifier = Modifier.padding(vertical = 4.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = weather?.temp ?: "24°C",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = weather?.description ?: "Cargando...",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Default.WbSunny,
+                contentDescription = null,
+                tint = Color(0xFFFFB300),
+                modifier = Modifier.size(28.dp)
+            )
+        }
+    }
+}
+
 @Composable
 private fun ProfessorStatsDashboard(profile: com.example.proyectodesdisint.model.UserProfile) {
     Card(
@@ -300,7 +346,7 @@ private fun ProfessorStatsDashboard(profile: com.example.proyectodesdisint.model
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 ProfessorStatItem("Alumnos", "${profile.asesorias.size}", MaterialTheme.colorScheme.primary)
                 ProfessorStatItem("Materiales", "${profile.materiasCount}", MaterialTheme.colorScheme.secondary)
-                ProfessorStatItem("TutorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as", "12", MaterialTheme.colorScheme.tertiary)
+                ProfessorStatItem("Tutorías", "12", MaterialTheme.colorScheme.tertiary)
                 ProfessorStatItem("Calif.", "4.9", Color(0xFFFFB300))
             }
         }
@@ -313,37 +359,40 @@ private fun ProfessorQuickActions(
     onManageMaterials: () -> Unit,
     onViewForum: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            title = "Asignar\nTarea",
-            icon = Icons.Default.Task,
-            containerColor = MaterialTheme.colorScheme.primary,
-            onClick = onAssignTask
-        )
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            title = "Material\nApoyo",
-            icon = Icons.Default.MenuBook,
-            containerColor = MaterialTheme.colorScheme.secondary,
-            onClick = onManageMaterials
-        )
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            title = "Foro\nDocente",
-            icon = Icons.Default.Forum,
-            containerColor = MaterialTheme.colorScheme.tertiary,
-            onClick = onViewForum
-        )
+        item {
+            QuickActionCard(
+                title = "Asignar\nTarea",
+                icon = Icons.Default.Task,
+                containerColor = MaterialTheme.colorScheme.primary,
+                onClick = onAssignTask
+            )
+        }
+        item {
+            QuickActionCard(
+                title = "Material\nApoyo",
+                icon = Icons.Default.MenuBook,
+                containerColor = MaterialTheme.colorScheme.secondary,
+                onClick = onManageMaterials
+            )
+        }
+        item {
+            QuickActionCard(
+                title = "Foro\nDocente",
+                icon = Icons.Default.Forum,
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                onClick = onViewForum
+            )
+        }
     }
 }
 
 @Composable
 private fun QuickActionCard(
-    modifier: Modifier = Modifier,
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     containerColor: Color,
@@ -351,16 +400,30 @@ private fun QuickActionCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.height(110.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+        modifier = Modifier.width(130.dp).height(120.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(12.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(icon, null, tint = Color.White, modifier = Modifier.size(28.dp))
-            Text(title, style = MaterialTheme.typography.labelLarge, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.2f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = Color.White, modifier = Modifier.size(24.dp))
+            }
+            Text(
+                title, 
+                style = MaterialTheme.typography.titleSmall, 
+                color = Color.White, 
+                fontWeight = FontWeight.Bold, 
+                lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified
+            )
         }
     }
 }
@@ -371,57 +434,58 @@ private fun AdminControlPanel(
     onManageMaterials: () -> Unit,
     onManageForum: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AdminPanelSettings, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.width(8.dp))
-                Text("GestiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Plataforma", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                AdminActionRow(Icons.Default.Groups, "Gestionar Usuarios y Roles", onClick = onManageUsers)
-                AdminActionRow(Icons.Default.MenuBook, "Gestionar Materiales de Apoyo", onClick = onManageMaterials)
-                AdminActionRow(Icons.Default.Forum, "Gestionar Foro Comunitario", onClick = onManageForum)
-            }
-        }
-    }
-}
-
-@Composable
-private fun AdminActionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
+    Column {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(12.dp))
-            Text(label, style = MaterialTheme.typography.bodyMedium)
+            Icon(Icons.Default.AdminPanelSettings, null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(8.dp))
+            Text("Gestión de Plataforma", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                QuickActionCard(
+                    title = "Usuarios\ny Roles",
+                    icon = Icons.Default.Groups,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    onClick = onManageUsers
+                )
+            }
+            item {
+                QuickActionCard(
+                    title = "Gestionar\nMaterial",
+                    icon = Icons.Default.MenuBook,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    onClick = onManageMaterials
+                )
+            }
+            item {
+                QuickActionCard(
+                    title = "Gestionar\nForo",
+                    icon = Icons.Default.Forum,
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    onClick = onManageForum
+                )
+            }
         }
     }
 }
 
+
 @Composable
-private fun SectionHeader(title: String, onSeeAll: () -> Unit) {
+private fun SectionHeader(title: String) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        TextButton(onClick = onSeeAll) {
-            Text("Ver todo", style = MaterialTheme.typography.labelLarge)
-        }
     }
 }
 
@@ -440,7 +504,7 @@ private fun AvailableStudentsList(students: List<UserProfile>, isLoading: Boolea
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(students) { student ->
-                // Estado para almacenar las tareas de este alumno especÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­fico y calcular su rendimiento
+                // Estado para almacenar las tareas de este alumno específico y calcular su rendimiento
                 var studentTasks by remember { mutableStateOf<List<com.example.proyectodesdisint.model.Task>>(emptyList()) }
                 var isFetching by remember { mutableStateOf(true) }
 
@@ -497,7 +561,7 @@ private fun AvailableStudentsList(students: List<UserProfile>, isLoading: Boolea
                         
                         Spacer(Modifier.height(16.dp))
                         
-                        // Barra de Progreso AnalÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­tica
+                        // Barra de Progreso Analítica
                         Text(
                             text = "Rendimiento: ${(performance.progress * 100).toInt()}%",
                             style = MaterialTheme.typography.labelSmall,
@@ -569,6 +633,34 @@ private fun ProfessorStatItem(label: String, value: String, color: Color) {
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
     }
 }
+
+@Composable
+private fun YouTubeSection(
+    videos: List<YouTubeSuggestion>
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Recursos Académicos",
+            style =
+                MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color =
+                MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(
+                horizontal = 20.dp,
+                vertical = 8.dp
+            )
+        )
+
+        YouTubeSuggestionsCarousel(
+            videos = videos,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
 @Composable
 private fun DailyOverviewCard(
     totalTasks: Int,
@@ -637,7 +729,7 @@ fun AssignTaskFlow(
                     }
                 } else {
                     Column {
-                        Text("Elige a quiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©n enviar esta tarea:", style = MaterialTheme.typography.bodySmall)
+                        Text("Elige a quién enviar esta tarea:", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
                             items(users.size) { index ->
@@ -660,7 +752,7 @@ fun AssignTaskFlow(
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­tulo") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("Instrucciones") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -674,7 +766,7 @@ fun AssignTaskFlow(
                         OutlinedTextField(
                             value = hora, 
                             onValueChange = { newValue ->
-                                // Solo permitir nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmeros y ':'
+                                // Solo permitir números y ':'
                                 if (newValue.all { it.isDigit() || it == ':' } && newValue.length <= 5) {
                                     hora = newValue
                                 }
@@ -711,7 +803,7 @@ fun AssignTaskFlow(
         },
         dismissButton = {
             TextButton(onClick = { if (step == 1) step = 0 else onDismiss() }) {
-                Text(if (step == 1) "AtrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡s" else "Cancelar")
+                Text(if (step == 1) "Atrás" else "Cancelar")
             }
         }
     )

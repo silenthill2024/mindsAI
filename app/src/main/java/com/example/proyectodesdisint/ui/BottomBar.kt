@@ -42,7 +42,7 @@ fun BottomBar(
         ),
         BottomNavigationItem(
             route = "ai",
-            label = "MindsAI",
+            label = "Minds AI",
             icon = Icons.Default.SmartToy
         ),
         BottomNavigationItem(
@@ -83,12 +83,21 @@ fun BottomBar(
                         navController.navigate(
                             item.route
                         ) {
-                            popUpTo("home") {
-                                saveState = true
+                            if (item.route == "home") {
+                                // Forzar navegación a home limpiando la pila para asegurar que cargue el Dashboard del rol
+                                popUpTo("home") { 
+                                    inclusive = true 
+                                    saveState = false // Resetear estado para forzar recarga de rol
+                                }
+                                launchSingleTop = true
+                                restoreState = false
+                            } else {
+                                popUpTo("home") {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-
-                            launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 },
@@ -99,7 +108,12 @@ fun BottomBar(
                     )
                 },
                 label = {
-                    Text(item.label)
+                    Text(
+                        text = item.label,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        softWrap = false
+                    )
                 },
                 colors =
                     NavigationBarItemDefaults.colors(

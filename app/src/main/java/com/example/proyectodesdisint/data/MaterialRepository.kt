@@ -16,7 +16,7 @@ class MaterialRepository {
         database.collection("material_apoyo")
 
     private val usersCollection =
-        database.collection("usuarios")
+        database.collection("users")
 
     fun listenMaterials(
         onResult: (List<MaterialApoyo>) -> Unit,
